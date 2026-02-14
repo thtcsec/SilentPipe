@@ -119,24 +119,28 @@ public class MainActivity extends AppCompatActivity {
         if (url == null) return null;
 
         // Xử lý YouTube (Shorts, mobile, v.v.)
-        if (url.contains("youtu.be/") || url.contains("youtube.com/")) {
-            Pattern pattern = Pattern.compile("(?:v=|/v/|/embed/|/shorts/|youtu.be/|/watch\\?v=)([^&\\n\\?#]+)");
-            Matcher matcher = pattern.matcher(url);
-            if (matcher.find()) {
-                return "https://www.youtube.com/watch?v=" + matcher.group(1);
-            }
+        Pattern ytPattern = Pattern.compile("(?:v=|/v/|/embed/|/shorts/|youtu.be/|/watch\\?v=)([^&\\n\\?#]+)");
+        Matcher ytMatcher = ytPattern.matcher(url);
+        if (ytMatcher.find()) {
+            return "https://www.youtube.com/watch?v=" + ytMatcher.group(1);
         }
 
-        // Xử lý TikTok
+        // Xử lý TikTok (hỗ trợ vt.tiktok.com, vm.tiktok.com và link đầy đủ)
+        // Regex: (https://(www|vt|vm).tiktok.com/(t/|@.../video/|v/)?...)
         if (url.contains("tiktok.com")) {
-            Pattern pattern = Pattern.compile("https://[\\w-]+\\.tiktok\\.com/[\\w/]+");
-            Matcher matcher = pattern.matcher(url);
-            if (matcher.find()) {
-                return matcher.group(0);
+            Pattern tiktokPattern = Pattern.compile("https://(?:www\\.|vt\\.|vm\\.)?tiktok\\.com/(?:@?[\\w\\.]+/video/|v/|t/)?[\\w-]+");
+            Matcher tiktokMatcher = tiktokPattern.matcher(url);
+            if (tiktokMatcher.find()) {
+                return tiktokMatcher.group(0);
             }
         }
 
-        return url;
+        // Nếu không khớp pattern nào nhưng có vẻ là URL
+        if (url.startsWith("http")) {
+            return url;
+        }
+
+        return null; // Không phải link hợp lệ
     }
 
     private void loadVideo(String url) {
@@ -178,7 +182,9 @@ public class MainActivity extends AppCompatActivity {
                     String error = result.get("error").toString();
                     runOnUiThread(() -> Toast.makeText(this, "Lỗi Python: " + error, Toast.LENGTH_LONG).show());
                 } else {
-                    runOnUiThread(() -> Toast.makeText(this, "Lỗi không xác định: Kết quả không hợp lệ.", Toast.LENGTH_LONG).show());
+                    String rawResult = result.toString();
+                    runOnUiThread(() -> Toast.makeText(this, "Lỗi KD (Invalid): " + rawResult, Toast.LENGTH_LONG).show());
+                    android.util.Log.e("SilentPipe", "Invalid Python Result: " + rawResult);
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
