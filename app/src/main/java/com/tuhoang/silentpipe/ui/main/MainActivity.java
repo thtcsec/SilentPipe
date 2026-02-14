@@ -140,25 +140,49 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadVideo(String url) {
+        runOnUiThread(() -> Toast.makeText(this, "Đang xử lý link...", Toast.LENGTH_SHORT).show());
         new Thread(() -> {
             try {
                 Python py = Python.getInstance();
-                PyObject module = py.getModule("extractor");
+                PyObject module = py.getModule("media_extractor");
                 PyObject result = module.callAttr("extract_info", url);
 
-                if (result.containsKey("url")) {
+                if (result == null) {
+                    runOnUiThread(() -> Toast.makeText(this, "Lỗi: Không nhận được phản hồi từ Python!", Toast.LENGTH_LONG).show());
+                    return;
+                }
+
+                if (result.containsKey("url") && result.get("url") != null) {
                     String streamUrl = result.get("url").toString();
+                    if (streamUrl.isEmpty() || streamUrl.equals("None")) {
+                         runOnUiThread(() -> Toast.makeText(this, "Lỗi: Link rỗng!", Toast.LENGTH_LONG).show());
+                         return;
+                    }
+
                     runOnUiThread(() -> {
                         if (mediaController != null) {
-                            MediaItem mediaItem = MediaItem.fromUri(streamUrl);
-                            mediaController.setMediaItem(mediaItem);
-                            mediaController.prepare();
-                            mediaController.play();
+                            try {
+                                MediaItem mediaItem = MediaItem.fromUri(streamUrl);
+                                mediaController.setMediaItem(mediaItem);
+                                mediaController.prepare();
+                                mediaController.play();
+                                Toast.makeText(this, "Đang phát: " + result.get("title"), Toast.LENGTH_SHORT).show();
+                            } catch (Exception e) {
+                                Toast.makeText(this, "Lỗi Player: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        } else {
+                             Toast.makeText(this, "Lỗi: MediaController chưa sẵn sàng!", Toast.LENGTH_LONG).show();
                         }
                     });
+                } else if (result.containsKey("error")) {
+                    String error = result.get("error").toString();
+                    runOnUiThread(() -> Toast.makeText(this, "Lỗi Python: " + error, Toast.LENGTH_LONG).show());
+                } else {
+                    runOnUiThread(() -> Toast.makeText(this, "Lỗi không xác định: Kết quả không hợp lệ.", Toast.LENGTH_LONG).show());
                 }
-            } catch (Exception e) {
-                runOnUiThread(() -> Toast.makeText(this, "Lỗi tải video: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            } catch (Throwable e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(this, "Lỗi nghiêm trọng: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         }).start();
     }
