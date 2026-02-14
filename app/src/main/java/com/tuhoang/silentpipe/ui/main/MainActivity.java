@@ -156,21 +156,26 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                if (result.containsKey("url") && result.get("url") != null) {
-                    String streamUrl = result.get("url").toString();
-                    if (streamUrl.isEmpty() || streamUrl.equals("None")) {
-                         runOnUiThread(() -> Toast.makeText(this, "Lỗi: Link rỗng!", Toast.LENGTH_LONG).show());
-                         return;
-                    }
+                // Use Python dict get method directly to avoid Java Map generic issues
+                PyObject urlObj = result.callAttr("get", "url");
+                PyObject titleObj = result.callAttr("get", "title");
+                PyObject errorObj = result.callAttr("get", "error");
 
+                String streamUrl = (urlObj != null) ? urlObj.toString() : null;
+                String title = (titleObj != null) ? titleObj.toString() : "Unknown Title";
+
+                if (streamUrl != null && !streamUrl.isEmpty() && !streamUrl.equals("None")) {
+                    final String finalUrl = streamUrl;
+                    final String finalTitle = title;
+                    
                     runOnUiThread(() -> {
                         if (mediaController != null) {
                             try {
-                                MediaItem mediaItem = MediaItem.fromUri(streamUrl);
+                                MediaItem mediaItem = MediaItem.fromUri(finalUrl);
                                 mediaController.setMediaItem(mediaItem);
                                 mediaController.prepare();
                                 mediaController.play();
-                                Toast.makeText(this, "Đang phát: " + result.get("title"), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "Đang phát: " + finalTitle, Toast.LENGTH_SHORT).show();
                             } catch (Exception e) {
                                 Toast.makeText(this, "Lỗi Player: " + e.getMessage(), Toast.LENGTH_LONG).show();
                             }
@@ -178,8 +183,8 @@ public class MainActivity extends AppCompatActivity {
                              Toast.makeText(this, "Lỗi: MediaController chưa sẵn sàng!", Toast.LENGTH_LONG).show();
                         }
                     });
-                } else if (result.containsKey("error")) {
-                    String error = result.get("error").toString();
+                } else if (errorObj != null && !errorObj.toString().equals("None")) {
+                    String error = errorObj.toString();
                     runOnUiThread(() -> Toast.makeText(this, "Lỗi Python: " + error, Toast.LENGTH_LONG).show());
                 } else {
                     String rawResult = result.toString();
