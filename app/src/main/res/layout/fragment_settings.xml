@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Data Management"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btn_backup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Backup Favorites (Export JSON)" />
+
+    <Button
+        android:id="@+id/btn_restore"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Restore Favorites (Import JSON)" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Shortcuts"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btn_add_shortcut_home"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Home Screen Shortcut" />
+
+    <Button
+        android:id="@+id/btn_add_qs_tile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add to Quick Settings (Android 13+)" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Audio"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btn_equalizer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Equalizer / Sound Tuning" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="About"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tv_about_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SilentPipe v...\nAuthor: tuhoang / thtcsec"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btn_github"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View on GitHub"
+        android:backgroundTint="#333333" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Don't hesitate to leave a star on GitHub! ⭐"
+        android:gravity="center"
+        android:layout_marginTop="8dp"
+        android:textStyle="italic"
+        android:textColor="?android:attr/textColorSecondary" />
+
+</LinearLayout>

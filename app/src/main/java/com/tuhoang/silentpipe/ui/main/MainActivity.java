@@ -13,19 +13,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.media3.common.AudioAttributes;
-import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
-import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.ui.PlayerView;
 import androidx.media3.session.MediaController;
 import androidx.media3.session.SessionToken;
+import androidx.media3.ui.PlayerView;
 
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
 import com.tuhoang.silentpipe.R;
 import com.tuhoang.silentpipe.core.service.PlaybackService;
+import com.tuhoang.silentpipe.data.FavoriteItem;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -38,17 +36,31 @@ public class MainActivity extends AppCompatActivity {
 
     private PlayerView playerView;
     private MediaController mediaController;
+    private String currentStreamUrl;
+    private FavoriteItem currentMediaItem;
+    private String lastClipboardText = ""; // Track last checked clipboard content
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkClipboard(true); // Unified method
+        
+        // Hide/Show FABs based on player state...
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Ensure Python is started (backup for Application preload)
+        if (!com.chaquo.python.Python.isStarted()) {
+            com.chaquo.python.Python.start(new com.chaquo.python.android.AndroidPlatform(this));
+        }
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
         // Stub logic for Python init
-        if (!Python.isStarted()) {
-            Python.start(new AndroidPlatform(this));
-        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -66,6 +78,13 @@ public class MainActivity extends AppCompatActivity {
         com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
         androidx.navigation.ui.NavigationUI.setupWithNavController(bottomNav, navController);
 
+        // Setup Toolbar
+        com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        androidx.navigation.ui.AppBarConfiguration appBarConfiguration = 
+                new androidx.navigation.ui.AppBarConfiguration.Builder(R.id.nav_home, R.id.nav_favorites, R.id.nav_settings).build();
+        androidx.navigation.ui.NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+
         // Setup Buttons
         com.google.android.material.floatingactionbutton.FloatingActionButton fabFavorite = findViewById(R.id.fab_favorite);
         fabFavorite.setOnClickListener(v -> addToFavorites());
@@ -82,11 +101,81 @@ public class MainActivity extends AppCompatActivity {
 
         fabMinimize.setOnClickListener(v -> togglePlayer(false));
         fabRestore.setOnClickListener(v -> togglePlayer(true));
+
+        // Make fab_stack draggable
+        android.view.View fabStack = findViewById(R.id.fab_stack);
+        makeDraggable(fabStack);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                 requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+             }
+        }
+    }
+
+    private float dX, dY;
+    private float initialTouchX, initialTouchY;
+    private static final int MOVE_THRESHOLD = 20;
+
+    private void makeDraggable(android.view.View container) {
+        android.view.ViewGroup group = (android.view.ViewGroup) container;
+        android.view.View.OnTouchListener dragListener = new android.view.View.OnTouchListener() {
+            private boolean isDragging = false;
+
+            @Override
+            public boolean onTouch(android.view.View v, android.view.MotionEvent event) {
+                switch (event.getAction()) {
+                    case android.view.MotionEvent.ACTION_DOWN:
+                        dX = container.getX() - event.getRawX();
+                        dY = container.getY() - event.getRawY();
+                        initialTouchX = event.getRawX();
+                        initialTouchY = event.getRawY();
+                        isDragging = false;
+                        v.setPressed(true); 
+                        return true; // Consume to get MOVE/UP
+                    case android.view.MotionEvent.ACTION_MOVE:
+                        float deltaX = event.getRawX() - initialTouchX;
+                        float deltaY = event.getRawY() - initialTouchY;
+                        
+                        if (isDragging || Math.abs(deltaX) > MOVE_THRESHOLD || Math.abs(deltaY) > MOVE_THRESHOLD) {
+                            if (!isDragging) {
+                                isDragging = true;
+                                v.setPressed(false); // Cancel ripple if dragging
+                            }
+                            float newX = event.getRawX() + dX;
+                            float newY = event.getRawY() + dY;
+                            
+                            // Bounds check
+                            newX = Math.max(0, Math.min(newX, ((android.view.View)container.getParent()).getWidth() - container.getWidth()));
+                            newY = Math.max(0, Math.min(newY, ((android.view.View)container.getParent()).getHeight() - container.getHeight()));
+                            
+                            container.setX(newX);
+                            container.setY(newY);
+                        }
+                        return true;
+                    case android.view.MotionEvent.ACTION_UP:
+                        v.setPressed(false);
+                        if (!isDragging) {
+                            v.performClick();
+                        }
+                        return true;
+                    case android.view.MotionEvent.ACTION_CANCEL:
+                        v.setPressed(false);
+                        return true;
+                }
+                return false;
+            }
+        };
+
+        // Apply to all children of the stack
+        for (int i = 0; i < group.getChildCount(); i++) {
+            group.getChildAt(i).setOnTouchListener(dragListener);
+        }
     }
 
     private void togglePlayer(boolean show) {
-        android.view.View[] viewsToAnimate = {
-            playerView,
+        android.view.View fabStack = findViewById(R.id.fab_stack);
+        android.view.View[] fabChildren = {
             findViewById(R.id.fab_favorite),
             findViewById(R.id.fab_speed),
             findViewById(R.id.fab_download),
@@ -97,18 +186,17 @@ public class MainActivity extends AppCompatActivity {
 
         if (show) {
             restoreBtn.setVisibility(android.view.View.GONE);
-            for (android.view.View view : viewsToAnimate) {
-                view.setAlpha(0f);
+            playerView.setVisibility(android.view.View.VISIBLE);
+            playerView.animate().alpha(1f).setDuration(200).start();
+            for (android.view.View view : fabChildren) {
                 view.setVisibility(android.view.View.VISIBLE);
-                view.animate().alpha(1f).setDuration(200).start();
             }
         } else {
-             for (android.view.View view : viewsToAnimate) {
-                view.animate().alpha(0f).setDuration(200).withEndAction(() -> view.setVisibility(android.view.View.GONE)).start();
+            playerView.animate().alpha(0f).setDuration(200).withEndAction(() -> playerView.setVisibility(android.view.View.GONE)).start();
+            for (android.view.View view : fabChildren) {
+                view.setVisibility(android.view.View.GONE);
             }
-            restoreBtn.setAlpha(0f);
             restoreBtn.setVisibility(android.view.View.VISIBLE);
-            restoreBtn.animate().alpha(1f).setDuration(200).start();
         }
     }
 
@@ -156,8 +244,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Speed: " + speed + "x", Toast.LENGTH_SHORT).show();
         }
     }
-
-    private com.tuhoang.silentpipe.data.FavoriteItem currentMediaItem;
 
     private void toggleFavorite() {
         if (currentMediaItem != null) {
@@ -236,7 +322,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleIntent(Intent intent) {
         if ("com.tuhoang.silentpipe.ACTION_PLAY_CLIPBOARD".equals(intent.getAction())) {
-            checkClipboardAndPlay();
+            checkClipboard(false);
             return;
         }
 
@@ -259,22 +345,47 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void checkClipboardAndPlay() {
+    private void checkClipboard(boolean fromResume) {
         android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        String prefillText = "";
+        String foundUrl = null;
+        String clipText = "";
         
         if (clipboard != null && clipboard.hasPrimaryClip()) {
             android.content.ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
             if (item != null && item.getText() != null) {
-                String text = item.getText().toString();
-                String url = normalizeUrl(text);
+                clipText = item.getText().toString();
+                String url = normalizeUrl(clipText);
                 if (url != null) {
-                    prefillText = url;
+                    foundUrl = url;
                 }
             }
         }
+        
+        // Ignore if same text and is automatic check
+        if (fromResume && clipText.equals(lastClipboardText)) {
+            return;
+        }
+        lastClipboardText = clipText;
 
-        showUrlInputDialog(prefillText);
+        if (foundUrl != null) {
+             final String urlToPlay = foundUrl;
+             if (fromResume) {
+                 // Non-intrusive Snackbar, anchored above BottomNav
+                 com.google.android.material.snackbar.Snackbar.make(
+                     findViewById(R.id.main), 
+                     "Link detected! Play?", 
+                     com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                     .setAnchorView(R.id.bottom_nav) // Fix covering BottomNav
+                     .setAction("PLAY", v -> loadVideo(urlToPlay))
+                     .show();
+             } else {
+                 // Explicit intent -> Show confirmation
+                 showUrlInputDialog(urlToPlay);
+             }
+        } else if (!fromResume) {
+            // Explicit intent but no URL
+             showUrlInputDialog("");
+        }
     }
 
     private void showUrlInputDialog(String prefill) {
@@ -359,12 +470,22 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String currentStreamUrl;
+    public void showEqualizer() {
+        PlaybackService service = PlaybackService.instance;
+        if (service != null) {
+            com.tuhoang.silentpipe.ui.main.EqualizerFragment eqFragment = new com.tuhoang.silentpipe.ui.main.EqualizerFragment();
+            eqFragment.setPlaybackService(service);
+            eqFragment.show(getSupportFragmentManager(), "Equalizer");
+        } else {
+            Toast.makeText(this, "Service not ready. Play something first!", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     public void loadVideo(String url) {
         runOnUiThread(() -> {
             Toast.makeText(this, "Đang xử lý link...", Toast.LENGTH_SHORT).show();
             playerView.setVisibility(android.view.View.VISIBLE);
+            togglePlayer(true); // Ensure FABs and player are restored if minimized
         });
         new Thread(() -> {
             try {

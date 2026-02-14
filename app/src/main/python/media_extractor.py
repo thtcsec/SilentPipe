@@ -21,32 +21,79 @@ def extract_info(url):
         'extract_flat': False, # Resolve playlists
         # TikTok often requires a User-Agent to avoid 403 or redirect to login
         'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Referer': 'https://www.tiktok.com/',
         },
     }
     
-    # Spotify Support via YouTube Search
+    # Specific headers for TikTok if detected
+    if "tiktok.com" in url:
+        ydl_opts['http_headers']['Referer'] = 'https://www.tiktok.com/'
+    
+    # Spotify Support via yt-dlp Metadata (Robust & Clean)
     if "spotify.com" in url:
         try:
-             import urllib.request
-             import re
-             import ssl
-             ctx = ssl.create_default_context()
-             ctx.check_hostname = False
-             ctx.verify_mode = ssl.CERT_NONE
-             headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-             req = urllib.request.Request(url, headers=headers)
-             with urllib.request.urlopen(req, context=ctx) as response:
-                 html = response.read().decode('utf-8')
+             import json
              
-             # Try custom regex for spotify title
-             title_match = re.search(r'<title>(.*?)</title>', html)
-             if title_match:
-                 page_title = title_match.group(1).replace(" | Spotify", "")
-                 # Search this on YouTube
-                 url = f"ytsearch1:{page_title}"
+             # Use yt-dlp to extract metadata directly
+             # extract_flat=True ensures we get metadata without downloading
+             meta_opts = {
+                 'quiet': True,
+                 'no_warnings': True,
+                 'extract_flat': True,
+                 'force_generic_extractor': False
+             }
+             
+             search_query = None
+             
+             with yt_dlp.YoutubeDL(meta_opts) as ydl:
+                 try:
+                     meta = ydl.extract_info(url, download=False)
+                     
+                     # Handle Playlists/Albums (take first entry)
+                     if 'entries' in meta:
+                         entries = list(meta.get('entries'))
+                         if entries:
+                             meta = entries[0]
+                     
+                     title = meta.get('title', '')
+                     
+                     # Safe artist extraction
+                     artist_list = meta.get('artist') or meta.get('artists') or meta.get('creator')
+                     if isinstance(artist_list, list):
+                         artist = ", ".join([str(a) for a in artist_list if a])
+                     else:
+                         artist = str(artist_list) if artist_list else ""
+                         
+                     if title:
+                         # Sanitize to prevent command injection risk (though yt-dlp is safe, we are careful)
+                         safe_title = title.replace('"', '').replace("'", "").strip()
+                         safe_artist = artist.replace('"', '').replace("'", "").strip()
+                         
+                         search_query = f"{safe_title} {safe_artist} official audio"
+                         print(f"DEBUG: Spotify Metadata: Title='{safe_title}', Artist='{safe_artist}'")
+                 except Exception as e:
+                     print(f"DEBUG: yt-dlp Spotify metadata extract failed: {e}")
+             
+             if search_query:
+                 url = f"ytsearch1:{search_query}"
+                 print(f"DEBUG: Optimized Search Query: {search_query}")
+             else:
+                 # Fallback: ID based search if metadata fails
+                 import re
+                 id_match = re.search(r'/track/([a-zA-Z0-9]+)', url)
+                 if id_match:
+                     track_id = id_match.group(1)
+                     url = f"ytsearch1:spotify track {track_id}"
+                     print(f"DEBUG: Fallback to ID search: {track_id}")
+                 else:
+                     url = f"ytsearch1:{url}"
+                     print(f"DEBUG: Fallback to raw URL search")
+                     
         except Exception as e:
-             return {"error": f"Lỗi Spotify Scrape: {str(e)}"}
+             print(f"DEBUG: Spotify global failure: {e}")
+             url = f"ytsearch1:{url}"
+             pass
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:

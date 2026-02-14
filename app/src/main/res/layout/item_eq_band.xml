@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/text_frequency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="60Hz"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:layout_gravity="center_horizontal"/>
+
+    <SeekBar
+        android:id="@+id/seek_bar_level"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="3000" 
+        android:progress="1500" />
+        <!-- Max 3000 for +/- 15dB range usually (1500 center) -->
+
+</LinearLayout>

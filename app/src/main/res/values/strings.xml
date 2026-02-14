@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">SilentPipe</string>
+    <string name="title_home">Home</string>
+    <string name="title_favorites">Favorites</string>
+    <string name="title_settings">Settings</string>
+    <string name="enter_media_url">Enter YouTube/TikTok/Spotify URL</string>
+    <string name="analyze_and_play">Analyze &amp; Play</string>
+    <string name="home_guide_text">Welcome to SilentPipe!\n\nPaste a link above or convert from another app via Share.\n\nSupports: YouTube, TikTok, Spotify</string>
 </resources>

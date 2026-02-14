@@ -7,9 +7,18 @@ Dự án được xây dựng với tinh thần "tự do software" (Free Softwar
 ## 🚀 Tính năng chính
 
 -   **Share to Play**: Không cần mở app rườm rà. Chỉ cần nhấn "Chia sẻ" (Share) từ YouTube/TikTok và chọn **SilentPipe**.
+-   **Spotify Support**: Hỗ trợ link Spotify (Track), tự động tìm bài tương ứng trên YouTube để phát. Hỗ trợ cả Playlist (YouTube) - tự động phát bài đầu tiên.
+-   **Download Offline**: Tải nhạc/video về bộ nhớ máy (thư mục Music/SilentPipe) để nghe Offline.
+-   **Playback Speed**: Điều chỉnh tốc độ phát linh hoạt (0.5x, 1.25x, 2.0x...) hoặc tự nhập con số bất kỳ bạn thích (ví dụ 1.05).
+-   **Player Controls**: Nút **Thu nhỏ (Minimize)** giúp ẩn video để thao tác với menu/danh sách mà không bị che khuất.
+-   **Now Playing Metadata**: Hiển thị rõ ràng tên bài hát và nghệ sĩ trên trình phát.
+-   **Favorites & History**: Lưu lại các bài hát yêu thích và quản lý danh sách phát cá nhân. Chặn thêm trùng lặp.
+-   **Quick Settings Tile**: Thêm nút vào thanh trạng thái để phát ngay link đang copy trong Clipboard. Hỗ trợ tự thêm từ trong Cài đặt (Android 13+).
+-   **Home Screen Shortcut**: Tạo shortcut ngoài màn hình chính, ấn là phát ngay nhạc từ Clipboard.
+-   **Backup & Restore**: Sao lưu dữ liệu yêu thích ra file JSON để chuyển sang máy khác.
 -   **Background Playback**: Hỗ trợ phát nhạc nền khi tắt màn hình, sử dụng **Android Media3 Service** chuẩn chỉ.
 -   **Python Powered Integration**: Tích hợp **Chaquopy** để chạy trực tiếp **yt-dlp** (thư viện tải video mạnh nhất thế giới) ngay trên điện thoại, giúp bóc tách link media cực mạnh.
--   **Privacy First**: Không đăng nhập, không lưu lịch sử, không gửi dữ liệu về máy chủ lạ.
+-   **Privacy First**: Không đăng nhập, không lưu lịch sử (trừ khi bạn muốn), không gửi dữ liệu về máy chủ lạ.
 -   **No Ads**: Hoàn toàn sạch bóng quảng cáo.
 
 ## 🛠️ Công nghệ sử dụng

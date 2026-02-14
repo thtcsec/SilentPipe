@@ -1,6 +1,8 @@
 *.iml
 .gradle
 .vscode
+.idea
+.kotlin
 /local.properties
 /.idea/caches
 /.idea/libraries
@@ -15,3 +17,7 @@
 .cxx
 local.properties
 .env
+.idea/
+*.log
+build_trace.log
+build_fix.log
