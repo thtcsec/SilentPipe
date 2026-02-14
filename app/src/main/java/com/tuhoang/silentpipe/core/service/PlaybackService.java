@@ -26,7 +26,14 @@ public class PlaybackService extends MediaSessionService {
     public void onCreate() {
         super.onCreate();
         instance = this;
-        player = new ExoPlayer.Builder(this).build();
+        
+        android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", android.content.Context.MODE_PRIVATE);
+        long skipMs = prefs.getInt("pref_skip_time", 10) * 1000L;
+        
+        player = new ExoPlayer.Builder(this)
+                .setSeekBackIncrementMs(skipMs)
+                .setSeekForwardIncrementMs(skipMs)
+                .build();
         
         AudioAttributes audioAttributes = new AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)
@@ -40,6 +47,15 @@ public class PlaybackService extends MediaSessionService {
         } catch (Exception e) {
             android.util.Log.e("PlaybackService", "Failed to init AudioFX", e);
         }
+        
+        player.addListener(new androidx.media3.common.Player.Listener() {
+            @Override
+            public void onAudioSessionIdChanged(int audioSessionId) {
+                if (audioEffectManager != null) {
+                    audioEffectManager.setAudioSessionId(audioSessionId);
+                }
+            }
+        });
 
         createNotificationChannel();
 

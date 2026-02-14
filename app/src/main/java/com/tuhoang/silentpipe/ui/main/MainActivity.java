@@ -41,11 +41,30 @@ public class MainActivity extends AppCompatActivity {
     private String lastClipboardText = ""; // Track last checked clipboard content
 
 
+    private boolean ignoreNextClipboardCheck = false; // Prevent Snackbar after Share intent
+
     @Override
     protected void onResume() {
         super.onResume();
-        checkClipboard(true); // Unified method
+        if (ignoreNextClipboardCheck) {
+            ignoreNextClipboardCheck = false;
+        } else {
+            checkClipboard(true); // Unified method
+        }
         
+        // Fix for "10s" hardcoded issue: Update UI on resume
+        if (playerView != null) {
+            android.content.SharedPreferences prefsUI = getSharedPreferences("silentpipe_prefs", android.content.Context.MODE_PRIVATE);
+            int skipTime = prefsUI.getInt("pref_skip_time", 10);
+            String skipText = skipTime + "s";
+            
+            android.widget.TextView tvRew = playerView.findViewById(R.id.tv_rew_time);
+            if (tvRew != null) tvRew.setText(skipText);
+            
+            android.widget.TextView tvFwd = playerView.findViewById(R.id.tv_ffwd_time);
+            if (tvFwd != null) tvFwd.setText(skipText);
+        }
+
         // Hide/Show FABs based on player state...
     }
     @Override
@@ -74,9 +93,23 @@ public class MainActivity extends AppCompatActivity {
         androidx.navigation.fragment.NavHostFragment navHostFragment =
                 (androidx.navigation.fragment.NavHostFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.nav_host_fragment);
-        androidx.navigation.NavController navController = navHostFragment.getNavController();
+        androidx.navigation.NavController navController = androidx.navigation.fragment.NavHostFragment.findNavController(navHostFragment);
         com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
         androidx.navigation.ui.NavigationUI.setupWithNavController(bottomNav, navController);
+        
+        // Hide Toolbar on Advanced EQ
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            boolean isAdvancedEQ = destination.getId() == R.id.navigation_advanced_eq;
+            findViewById(R.id.appbar_layout).setVisibility(isAdvancedEQ ? android.view.View.GONE : android.view.View.VISIBLE);
+            bottomNav.setVisibility(isAdvancedEQ ? android.view.View.GONE : android.view.View.VISIBLE); 
+        });
+
+        // Request Notification Permission for Android 13+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
 
         // Setup Toolbar
         com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.toolbar);
@@ -145,9 +178,13 @@ public class MainActivity extends AppCompatActivity {
                             float newX = event.getRawX() + dX;
                             float newY = event.getRawY() + dY;
                             
-                            // Bounds check
+                            // Bounds check with safety margin for BottomNav
+                            int bottomNavHeight = findViewById(R.id.bottom_nav).getHeight();
+                            if (bottomNavHeight == 0) bottomNavHeight = 200; // Fallback
+                            
                             newX = Math.max(0, Math.min(newX, ((android.view.View)container.getParent()).getWidth() - container.getWidth()));
-                            newY = Math.max(0, Math.min(newY, ((android.view.View)container.getParent()).getHeight() - container.getHeight()));
+                            // Subtract BottomNav height + margin from max Y
+                            newY = Math.max(0, Math.min(newY, ((android.view.View)container.getParent()).getHeight() - container.getHeight() - bottomNavHeight - 50));
                             
                             container.setX(newX);
                             container.setY(newY);
@@ -325,6 +362,8 @@ public class MainActivity extends AppCompatActivity {
             checkClipboard(false);
             return;
         }
+        
+        ignoreNextClipboardCheck = true; // Intent handling should suppress auto-check
 
         if (Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType())) {
             String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
@@ -361,10 +400,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         
-        // Ignore if same text and is automatic check
-        if (fromResume && clipText.equals(lastClipboardText)) {
+        // Persist and ignore if same text and is automatic check
+        android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", android.content.Context.MODE_PRIVATE);
+        String savedLastClip = prefs.getString("last_clipboard_text", "");
+        
+        if (fromResume && clipText.equals(savedLastClip)) {
             return;
         }
+        
+        // Update persistent state
+        prefs.edit().putString("last_clipboard_text", clipText).apply();
         lastClipboardText = clipText;
 
         if (foundUrl != null) {
@@ -482,6 +527,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadVideo(String url) {
+        ignoreNextClipboardCheck = true; // Fix Share/Clipboard conflict: Don't prompt again in onResume
         runOnUiThread(() -> {
             Toast.makeText(this, "Đang xử lý link...", Toast.LENGTH_SHORT).show();
             playerView.setVisibility(android.view.View.VISIBLE);
@@ -491,7 +537,11 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Python py = Python.getInstance();
                 PyObject module = py.getModule("media_extractor");
-                PyObject result = module.callAttr("extract_info", url);
+                
+                android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", android.content.Context.MODE_PRIVATE);
+                boolean preferHq = prefs.getBoolean("pref_hq_audio", false);
+                
+                PyObject result = module.callAttr("extract_info", url, preferHq);
 
                 if (result == null) {
                     runOnUiThread(() -> Toast.makeText(this, "Lỗi: Không nhận được phản hồi từ Python!", Toast.LENGTH_LONG).show());
@@ -502,14 +552,18 @@ public class MainActivity extends AppCompatActivity {
                 PyObject urlObj = result.callAttr("get", "url");
                 PyObject titleObj = result.callAttr("get", "title");
                 PyObject errorObj = result.callAttr("get", "error");
+                PyObject sourceObj = result.callAttr("get", "source_info");
 
                 String streamUrl = (urlObj != null) ? urlObj.toString() : null;
                 String title = (titleObj != null) ? titleObj.toString() : "Unknown Title";
+                String sourceInfo = (sourceObj != null) ? sourceObj.toString() : "Source: YouTube";
 
                 if (streamUrl != null && !streamUrl.isEmpty() && !streamUrl.equals("None")) {
                     final String finalUrl = streamUrl;
                     currentStreamUrl = finalUrl;
                     final String finalTitle = title;
+                    final String finalSourceInfo = sourceInfo;
+                    
                     PyObject uploaderObj = result.callAttr("get", "uploader");
                     final String finalUploader = (uploaderObj != null) ? uploaderObj.toString() : "Unknown Uploader";
                     final long duration = 0; // Simplified for now
@@ -528,7 +582,52 @@ public class MainActivity extends AppCompatActivity {
                                 mediaController.setMediaItem(mediaItem);
                                 mediaController.prepare();
                                 mediaController.play();
-                                Toast.makeText(this, "Đang phát: " + finalTitle, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "Playing: " + finalTitle, Toast.LENGTH_SHORT).show();
+                                
+                                // Update Title and Source in Custom Controller
+                                android.widget.TextView tvTitle = playerView.findViewById(R.id.tv_player_title);
+                                if (tvTitle != null) tvTitle.setText(finalTitle);
+                                
+                                android.widget.TextView tvSource = playerView.findViewById(R.id.tv_source_info);
+                                if (tvSource != null) tvSource.setText(finalSourceInfo);
+                                
+                                // Update Skip Time Text
+                                android.content.SharedPreferences prefsUI = getSharedPreferences("silentpipe_prefs", android.content.Context.MODE_PRIVATE);
+                                int skipTime = prefsUI.getInt("pref_skip_time", 10);
+                                String skipText = skipTime + "s";
+                                
+                                android.widget.TextView tvRew = playerView.findViewById(R.id.tv_rew_time);
+                                if (tvRew != null) tvRew.setText(skipText);
+                                
+                                android.widget.TextView tvFwd = playerView.findViewById(R.id.tv_ffwd_time);
+                                if (tvFwd != null) tvFwd.setText(skipText);
+                                
+                                // Manual Button Binding (Fix for unresponsive buttons)
+                                android.view.View btnPlay = playerView.findViewById(androidx.media3.ui.R.id.exo_play);
+                                android.view.View btnPause = playerView.findViewById(androidx.media3.ui.R.id.exo_pause);
+                                
+                                if (btnPlay != null) {
+                                    btnPlay.setOnClickListener(v -> {
+                                        if (mediaController != null) {
+                                            android.util.Log.d("SilentPipe", "Manual Play Clicked");
+                                            if (mediaController.getPlaybackState() == androidx.media3.common.Player.STATE_ENDED) {
+                                                mediaController.seekTo(0);
+                                                mediaController.play();
+                                            } else {
+                                                mediaController.play();
+                                            }
+                                        } else {
+                                             Toast.makeText(this, "Controller null", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+                                
+                                if (btnPause != null) {
+                                    btnPause.setOnClickListener(v -> {
+                                        android.util.Log.d("SilentPipe", "Manual Pause Clicked");
+                                        if (mediaController != null) mediaController.pause();
+                                    });
+                                }
                                 
                                 findViewById(R.id.fab_favorite).setVisibility(android.view.View.VISIBLE);
                                 findViewById(R.id.fab_speed).setVisibility(android.view.View.VISIBLE);

@@ -8,104 +8,30 @@ try:
 except Exception:
     IMPORT_ERROR = traceback.format_exc()
 
-def extract_info(url):
+def extract_info(url, prefer_hq=False):
     # If import failed, return the error immediately
     if IMPORT_ERROR:
         return {"error": f"Lỗi khởi động Python (Import Error):\n{IMPORT_ERROR}"}
 
+    # Based on old working version (simple is better)
     ydl_opts = {
         'format': 'bestaudio/best',
-        'noplaylist': False, # Enable playlist support
+        'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
-        'extract_flat': False, # Resolve playlists
+        'extract_flat': False,
         # TikTok often requires a User-Agent to avoid 403 or redirect to login
         'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Referer': 'https://www.tiktok.com/',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1',
         },
     }
     
-    # Specific headers for TikTok if detected
-    if "tiktok.com" in url:
-        ydl_opts['http_headers']['Referer'] = 'https://www.tiktok.com/'
-    
-    # Spotify Support via yt-dlp Metadata (Robust & Clean)
-    if "spotify.com" in url:
-        try:
-             import json
-             
-             # Use yt-dlp to extract metadata directly
-             # extract_flat=True ensures we get metadata without downloading
-             meta_opts = {
-                 'quiet': True,
-                 'no_warnings': True,
-                 'extract_flat': True,
-                 'force_generic_extractor': False
-             }
-             
-             search_query = None
-             
-             with yt_dlp.YoutubeDL(meta_opts) as ydl:
-                 try:
-                     meta = ydl.extract_info(url, download=False)
-                     
-                     # Handle Playlists/Albums (take first entry)
-                     if 'entries' in meta:
-                         entries = list(meta.get('entries'))
-                         if entries:
-                             meta = entries[0]
-                     
-                     title = meta.get('title', '')
-                     
-                     # Safe artist extraction
-                     artist_list = meta.get('artist') or meta.get('artists') or meta.get('creator')
-                     if isinstance(artist_list, list):
-                         artist = ", ".join([str(a) for a in artist_list if a])
-                     else:
-                         artist = str(artist_list) if artist_list else ""
-                         
-                     if title:
-                         # Sanitize to prevent command injection risk (though yt-dlp is safe, we are careful)
-                         safe_title = title.replace('"', '').replace("'", "").strip()
-                         safe_artist = artist.replace('"', '').replace("'", "").strip()
-                         
-                         search_query = f"{safe_title} {safe_artist} official audio"
-                         print(f"DEBUG: Spotify Metadata: Title='{safe_title}', Artist='{safe_artist}'")
-                 except Exception as e:
-                     print(f"DEBUG: yt-dlp Spotify metadata extract failed: {e}")
-             
-             if search_query:
-                 url = f"ytsearch1:{search_query}"
-                 print(f"DEBUG: Optimized Search Query: {search_query}")
-             else:
-                 # Fallback: ID based search if metadata fails
-                 import re
-                 id_match = re.search(r'/track/([a-zA-Z0-9]+)', url)
-                 if id_match:
-                     track_id = id_match.group(1)
-                     url = f"ytsearch1:spotify track {track_id}"
-                     print(f"DEBUG: Fallback to ID search: {track_id}")
-                 else:
-                     url = f"ytsearch1:{url}"
-                     print(f"DEBUG: Fallback to raw URL search")
-                     
-        except Exception as e:
-             print(f"DEBUG: Spotify global failure: {e}")
-             url = f"ytsearch1:{url}"
-             pass
+    # Spotify Support REMOVED as requested by user to isolate TikTok issues.
+    # Logic is now purely yt-dlp + TikTok fallback.
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            
-            # Playlist Detection
-            if 'entries' in info:
-                entries = list(info.get('entries'))
-                if entries:
-                    # Return the first entry but mark as playlist (or just play it)
-                    # For now we take the first item to play
-                    info = entries[0]
             
             # Try to get URL from top level or formats
             stream_url = info.get("url")
@@ -122,20 +48,25 @@ def extract_info(url):
             if not stream_url:
                 return {"error": "Không tìm thấy link media (No URL found)"}
 
+            # Add simple source info
+            source_info = "Source: YouTube"
+            if "tiktok.com" in url or "tiktok" in info.get("extractor", "").lower():
+                source_info = "Source: TikTok"
+
             return {
                 "title": info.get("title", "Unknown Title"),
                 "duration": info.get("duration", 0),
                 "thumbnail": info.get("thumbnail", ""),
                 "url": stream_url,
                 "uploader": info.get("uploader", "Unknown"),
-                "view_count": info.get("view_count", 0)
+                "view_count": info.get("view_count", 0),
+                "source_info": source_info
             }
     except Exception as e:
         error_msg = str(e)
         
-        # Fallback for TikTok (Music or Video) if yt-dlp fails
-        if "tiktok.com" in url and "ytsearch" not in url:
-            print(f"DEBUG: Entering TikTok Fallback for {url}")
+        # Fallback for TikTok Music (yt-dlp 'Unsupported URL')
+        if "tiktok.com" in url:
             try:
                 import urllib.request
                 import re
@@ -147,39 +78,35 @@ def extract_info(url):
                 ctx.check_hostname = False
                 ctx.verify_mode = ssl.CERT_NONE
 
+                # TikTok requires User-Agent
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                     'Referer': 'https://www.tiktok.com/'
                 }
-                
                 req = urllib.request.Request(url, headers=headers)
                 with urllib.request.urlopen(req, context=ctx) as response:
                     html = response.read().decode('utf-8')
-                
-                print("DEBUG: HTML fetched, searching for URL...")
 
-                # Strategy 1: "playUrl":"..."
+                # Strategy 1: Look for "playUrl" in deeply nested JSON (SIGI_STATE or __UNIVERSAL_DATA...)
+                # Matches: "playUrl":"https://..."
+                # NOTE: URLs in JSON are often escaped like https:\\u002F\\u002F...
                 matches = re.findall(r'"playUrl":"(.*?)"', html)
-                audio_url = None
                 
+                audio_url = None
                 for match in matches:
-                    try:
-                        # Decode potential unicode escapes
-                        cleaned = match.encode('utf-8').decode('unicode_escape').replace(r'\/', '/')
-                        if cleaned.startswith('http') and len(cleaned) > 10:
-                            audio_url = cleaned
-                            print(f"DEBUG: Found Strategy 1 URL: {audio_url}")
-                            break
-                    except:
-                        continue
+                    # Clean up standard JSON escaping
+                    cleaned = match.encode().decode('unicode_escape').replace(r'\/', '/')
+                    if cleaned.startswith('http') and len(cleaned) > 10:
+                        audio_url = cleaned
+                        break
                 
                 if not audio_url:
-                     # Strategy 2: Look for direct mp3/m4a patterns
+                     # Strategy 2: Look immediately for mp3/m4a inside quotes
+                     # This is looser but might catch direct source tags
                      media_matches = re.findall(r'"(https?://[^"]+?\.(?:mp3|m4a|aac).*?)"', html)
                      if media_matches:
-                         audio_url = media_matches[0].encode('utf-8').decode('unicode_escape').replace(r'\/', '/')
-                         print(f"DEBUG: Found Strategy 2 URL: {audio_url}")
-
+                         audio_url = media_matches[0].encode().decode('unicode_escape').replace(r'\/', '/')
+                         
                 if audio_url:
                      title_match = re.search(r'<title>(.*?)</title>', html)
                      title = title_match.group(1).replace(" | TikTok", "") if title_match else "TikTok Music"
@@ -190,17 +117,13 @@ def extract_info(url):
                         "thumbnail": "",
                         "url": audio_url,
                         "uploader": "TikTok Music",
-                        "view_count": 0
+                        "view_count": 0,
+                        "source_info": "Source: TikTok (Fallback)"
                     }
                 else:
-                     print("DEBUG: No URL found in fallback")
-                     return {"error": "Không thể tìm thấy link nhạc trong trang này. TikTok có thể đã đổi cấu trúc."}
+                     return {"error": "Không thể lấy link nhạc từ trang này (Parse Error)."}
             except Exception as fallback_e:
-                 print(f"DEBUG: Fallback exception: {fallback_e}")
-                 return {"error": f"Lỗi fallback TikTok: {str(fallback_e)}"}
+                 return {"error": f"Lỗi lấy nhạc TikTok (Fallback Error):\n{str(fallback_e)}"}
         
-        # Capture full traceback for debugging if not TikTok or fallback failed strangely logic
-        return {"error": f"Lỗi xử lý (Extraction Error):\n{error_msg}\n\n{traceback.format_exc()}"}
-
-        # Capture full traceback for debugging
+        # Capture full traceback for debugging separate from TikTok fallback
         return {"error": f"Lỗi xử lý (Extraction Error):\n{error_msg}\n\n{traceback.format_exc()}"}
