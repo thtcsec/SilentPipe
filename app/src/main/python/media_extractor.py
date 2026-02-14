@@ -54,10 +54,59 @@ def extract_info(url):
             }
     except Exception as e:
         error_msg = str(e)
-        if "Unsupported URL" in error_msg:
-             if "tiktok.com/music" in url:
-                 return {"error": "Đây là link Nhạc nền TikTok (Music), không phải Video. Vui lòng chia sẻ link Video."}
-             return {"error": "Không hỗ trợ loại link này (Unsupported URL). Hãy thử link Video trực tiếp."}
         
+        # Fallback for TikTok Music (yt-dlp 'Unsupported URL')
+        if "Unsupported URL" in error_msg and "tiktok.com/music" in url:
+            try:
+                import urllib.request
+                import re
+                import json
+
+                # TikTok requires User-Agent
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                    'Referer': 'https://www.tiktok.com/'
+                }
+                req = urllib.request.Request(url, headers=headers)
+                with urllib.request.urlopen(req) as response:
+                    html = response.read().decode('utf-8')
+
+                # Strategy 1: Look for "playUrl" in deeply nested JSON (SIGI_STATE or __UNIVERSAL_DATA...)
+                # Matches: "playUrl":"https://..."
+                # NOTE: URLs in JSON are often escaped like https:\\u002F\\u002F...
+                matches = re.findall(r'"playUrl":"(.*?)"', html)
+                
+                audio_url = None
+                for match in matches:
+                    # Clean up standard JSON escaping
+                    cleaned = match.encode().decode('unicode_escape').replace(r'\/', '/')
+                    if cleaned.startswith('http') and len(cleaned) > 10:
+                        audio_url = cleaned
+                        break
+                
+                if not audio_url:
+                     # Strategy 2: Look immediately for mp3/m4a inside quotes
+                     # This is looser but might catch direct source tags
+                     media_matches = re.findall(r'"(https?://[^"]+?\.(?:mp3|m4a|aac).*?)"', html)
+                     if media_matches:
+                         audio_url = media_matches[0].encode().decode('unicode_escape').replace(r'\/', '/')
+
+                if audio_url:
+                     title_match = re.search(r'<title>(.*?)</title>', html)
+                     title = title_match.group(1).replace(" | TikTok", "") if title_match else "TikTok Music"
+                     
+                     return {
+                        "title": title,
+                        "duration": 0,
+                        "thumbnail": "",
+                        "url": audio_url,
+                        "uploader": "TikTok Music",
+                        "view_count": 0
+                    }
+                else:
+                     return {"error": "Không thể lấy link nhạc từ trang này (Parse Error)."}
+            except Exception as fallback_e:
+                 return {"error": f"Lỗi lấy nhạc TikTok (Fallback Error):\n{str(fallback_e)}"}
+
         # Capture full traceback for debugging
         return {"error": f"Lỗi xử lý (Extraction Error):\n{error_msg}\n\n{traceback.format_exc()}"}
