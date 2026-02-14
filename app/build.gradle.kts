@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.chaquopy)
+    id("kotlin-kapt")
 }
 
 android {
@@ -61,6 +62,14 @@ dependencies {
     implementation(libs.media3.ui)
     implementation(libs.newpipe.extractor)
     implementation(libs.okhttp)
+    implementation(libs.gson)
+
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
+
+    implementation(libs.room.runtime)
+    //noinspection KaptUsageInsteadOfKsp
+    kapt(libs.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
