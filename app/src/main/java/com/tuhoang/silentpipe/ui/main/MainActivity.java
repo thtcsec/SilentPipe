@@ -125,10 +125,10 @@ public class MainActivity extends AppCompatActivity {
             return "https://www.youtube.com/watch?v=" + ytMatcher.group(1);
         }
 
-        // Xử lý TikTok (hỗ trợ vt.tiktok.com, vm.tiktok.com và link đầy đủ)
-        // Regex: (https://(www|vt|vm).tiktok.com/(t/|@.../video/|v/)?...)
+        // Regex: (https://(www|vt|vm).tiktok.com/...)
+        // Use a simpler regex to capture the full URL until whitespace
         if (url.contains("tiktok.com")) {
-            Pattern tiktokPattern = Pattern.compile("https://(?:www\\.|vt\\.|vm\\.)?tiktok\\.com/(?:@?[\\w\\.]+/video/|v/|t/)?[\\w-]+");
+            Pattern tiktokPattern = Pattern.compile("https://(?:www\\.|vt\\.|vm\\.)?tiktok\\.com/[^\\s]+");
             Matcher tiktokMatcher = tiktokPattern.matcher(url);
             if (tiktokMatcher.find()) {
                 return tiktokMatcher.group(0);
