@@ -13,5 +13,10 @@ public class SilentPipeApplication extends Application {
         if (!Python.isStarted()) {
             Python.start(new AndroidPlatform(this));
         }
+
+        // Apply Theme
+        android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", MODE_PRIVATE);
+        int mode = prefs.getInt("pref_theme_mode", androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(mode);
     }
 }

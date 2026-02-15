@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.tuhoang.silentpipe.R;
@@ -137,19 +138,155 @@ public class SettingsFragment extends Fragment {
             });
         }
 
-        // Version & GitHub
-        android.widget.TextView tvAbout = view.findViewById(R.id.tv_about_content);
-        try {
-            android.content.pm.PackageInfo pInfo = requireContext().getPackageManager().getPackageInfo(requireContext().getPackageName(), 0);
-            tvAbout.setText("SilentPipe v" + pInfo.versionName + "\nAuthor: tuhoang / thtcsec");
-        } catch (Exception e) {
-            tvAbout.setText("SilentPipe v1.3\nAuthor: tuhoang / thtcsec");
+
+
+        // Theme Switcher
+        Button btnTheme = view.findViewById(R.id.btn_theme);
+        if (btnTheme != null) {
+            android.content.SharedPreferences prefs = requireContext().getSharedPreferences("silentpipe_prefs", android.content.Context.MODE_PRIVATE);
+            int currentMode = prefs.getInt("pref_theme_mode", androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+            updateThemeButtonText(btnTheme, currentMode);
+
+            btnTheme.setOnClickListener(v -> {
+                String[] modes = {getString(R.string.system_default), getString(R.string.light), getString(R.string.dark)};
+                int checkedItem = 0;
+                if (currentMode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO) checkedItem = 1;
+                else if (currentMode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES) checkedItem = 2;
+
+                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.select_app_theme)
+                    .setSingleChoiceItems(modes, checkedItem, (dialog, which) -> {
+                        int newMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+                        if (which == 1) newMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO;
+                        else if (which == 2) newMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES;
+
+                        prefs.edit().putInt("pref_theme_mode", newMode).apply();
+                        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(newMode);
+                        updateThemeButtonText(btnTheme, newMode);
+                        dialog.dismiss();
+                    })
+                    .show();
+            });
+        }
+
+        // Language Switcher (Added)
+        Button btnLanguage = view.findViewById(R.id.btn_language);
+        if (btnLanguage != null) {
+            // Check current locale
+            androidx.core.os.LocaleListCompat currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales();
+            String currentLang = "en"; // Default
+            if (!currentLocales.isEmpty()) {
+                currentLang = currentLocales.get(0).getLanguage();
+            }
+            updateLanguageButtonText(btnLanguage, currentLang);
+
+            btnLanguage.setOnClickListener(v -> {
+                String[] languages = {getString(R.string.english), getString(R.string.vietnamese)};
+                String finalCurrentLang = !currentLocales.isEmpty() ? currentLocales.get(0).getLanguage() : "en";
+                int checkedItem = finalCurrentLang.equals("vi") ? 1 : 0;
+
+                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.select_language)
+                        .setSingleChoiceItems(languages, checkedItem, (dialog, which) -> {
+                            String newLang = which == 1 ? "vi" : "en";
+                            androidx.core.os.LocaleListCompat appLocale = androidx.core.os.LocaleListCompat.forLanguageTags(newLang);
+                            androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(appLocale);
+                            // No need to update button text manually, activity will recreate
+                            dialog.dismiss();
+                        })
+                        .show();
+            });
+        }
+
+        // Permission Logic
+        SwitchMaterial switchNoti = view.findViewById(R.id.switch_notification_permission);
+
+        // check notification permission
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            boolean hasNoti = androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+            switchNoti.setChecked(hasNoti);
+            switchNoti.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked && !hasNoti) {
+                    requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+                } else if (!isChecked) {
+                    // User wants to disable, guide them to settings
+                     Intent intent = new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                            .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, requireContext().getPackageName());
+                    startActivity(intent);
+                }
+            });
+        } else {
+            switchNoti.setEnabled(false);
+            switchNoti.setText(R.string.pref_allow_notifications_13);
+        }
+
+        // Check Microphone Permission
+        SwitchMaterial switchMic = view.findViewById(R.id.switch_microphone_permission);
+        if (switchMic != null) {
+            boolean hasMic = androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+            switchMic.setChecked(hasMic);
+            switchMic.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked && !hasMic) {
+                    requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, 102);
+                } else if (!isChecked) {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    Uri uri = Uri.fromParts("package", requireContext().getPackageName(), null);
+                    intent.setData(uri);
+                    startActivity(intent);
+                }
+            });
         }
 
         view.findViewById(R.id.btn_github).setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/thtcsec/SilentPipe"));
             startActivity(intent);
         });
+        
+        // Update About Text with Version
+        android.widget.TextView tvAbout = view.findViewById(R.id.tv_about_content);
+        if (tvAbout != null) {
+             String version = "1.0";
+             try {
+                 android.content.pm.PackageInfo pInfo = requireContext().getPackageManager().getPackageInfo(requireContext().getPackageName(), 0);
+                 version = pInfo.versionName;
+             } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+                 e.printStackTrace();
+             }
+             tvAbout.setText(getString(R.string.pref_about_content, version));
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getView() != null) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                SwitchMaterial switchNoti = getView().findViewById(R.id.switch_notification_permission);
+                if (switchNoti != null) {
+                     boolean hasNoti = androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+                     switchNoti.setChecked(hasNoti);
+                }
+            }
+            
+            SwitchMaterial switchMic = getView().findViewById(R.id.switch_microphone_permission);
+            if (switchMic != null) {
+                boolean hasMic = androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+                switchMic.setChecked(hasMic);
+            }
+        }
+    }
+
+    private void updateThemeButtonText(Button btn, int mode) {
+        String text = getString(R.string.pref_theme_default);
+        if (mode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO) text = getString(R.string.pref_theme_light);
+        else if (mode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES) text = getString(R.string.pref_theme_dark);
+        btn.setText(text);
+    }
+
+    private void updateLanguageButtonText(Button btn, String langCode) {
+        String text = getString(R.string.pref_language_en);
+        if ("vi".equals(langCode)) text = getString(R.string.pref_language_vi);
+        btn.setText(text);
     }
 
     private void addHomeScreenShortcut() {

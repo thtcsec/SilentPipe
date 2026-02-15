@@ -6,4 +6,76 @@
     <string name="enter_media_url">Enter YouTube/TikTok/Spotify URL</string>
     <string name="analyze_and_play">Analyze &amp; Play</string>
     <string name="home_guide_text">Welcome to SilentPipe!\n\nPaste a link above or convert from another app via Share.\n\nSupports: YouTube, TikTok, Spotify</string>
+
+    <!-- Settings -->
+    <string name="pref_appearance">Appearance</string>
+    <string name="pref_theme_default">App Theme: System Default</string>
+    <string name="pref_theme_light">App Theme: Light</string>
+    <string name="pref_theme_dark">App Theme: Dark</string>
+    <string name="pref_language_title">Language</string>
+    <string name="pref_language_en">Language: English</string>
+    <string name="pref_language_vi">Language: Tiếng Việt</string>
+    <string name="pref_permissions">Permissions</string>
+    <string name="pref_allow_notifications">Allow Notifications</string>
+    <string name="pref_allow_notifications_13">Allow Notifications (Android 13+)</string>
+    <string name="pref_allow_microphone">Allow Microphone Access (for Find Sound)</string>
+    <string name="pref_data_management">Data Management</string>
+    <string name="pref_backup">Backup Favorites (Export JSON)</string>
+    <string name="pref_restore">Restore Favorites (Import JSON)</string>
+    <string name="pref_shortcuts">Shortcuts</string>
+    <string name="pref_add_shortcut_home">Add Home Screen Shortcut</string>
+    <string name="pref_add_shortcut_qs">Add to Quick Settings (Android 13+)</string>
+    <string name="pref_audio">Audio</string>
+    <string name="pref_audio_equalizer">Audio Equalizer / Tuning</string>
+    <string name="pref_hq_audio">Prioritize YouTube Music (HQ)</string>
+    <string name="pref_skip_interval">Skip Interval: %ds</string>
+    <string name="pref_about">About</string>
+    <string name="pref_about_content">SilentPipe v%s\nAuthor: tuhoang / thtcsec</string>
+    <string name="pref_github">View on GitHub</string>
+    <string name="pref_star_github">Don\'t hesitate to leave a star on GitHub! ⭐</string>
+    <string name="select_app_theme">Select App Theme</string>
+    <string name="select_language">Select Language</string>
+    <string name="system_default">System Default</string>
+    <string name="light">Light</string>
+    <string name="dark">Dark</string>
+    <string name="english">English</string>
+    <string name="vietnamese">Tiếng Việt</string>
+    
+    <!-- Toast/Dialogs -->
+    <string name="backup_success">Backup saved to Downloads</string>
+    <string name="restore_success">Favorites restored successfully</string>
+    <string name="restore_fail">Failed to restore favorites</string>
+    <string name="shortcut_added">Shortcut added to Home Screen</string>
+    <string name="qs_tile_added">Tile added to Quick Settings</string>
+    
+    <!-- MainActivity -->
+    <string name="toast_processing_link">Processing link...</string>
+    <string name="toast_invalid_url">Invalid URL</string>
+    <string name="toast_error_python">Python Error: %s</string>
+    <string name="toast_error_player">Player Error: %s</string>
+    <string name="toast_critical_error">Critical Error: %s</string>
+    <string name="toast_playing">Playing: %s</string>
+    <string name="toast_fav_added">Added to Favorites</string>
+    <string name="toast_fav_removed">Removed from Favorites</string>
+    <string name="dialog_speed_title">Playback Speed</string>
+    <string name="dialog_speed_custom">Custom</string>
+    <string name="dialog_custom_speed_title">Custom Speed</string>
+    <string name="dialog_custom_speed_hint">Enter speed (e.g. 1.1)</string>
+    <string name="dialog_set">Set</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_url_title">Enter Media URL</string>
+    <string name="dialog_url_message">Enter a YouTube or TikTok link to play (Background supported)</string>
+    <string name="dialog_play">Play</string>
+    <string name="unknown_title">Unknown Title</string>
+    <string name="unknown_uploader">Unknown Uploader</string>
+    <string name="source_youtube">Source: YouTube</string>
+
+    <!-- Navigation Drawer -->
+    <string name="nav_find_sound">Find Sound</string>
+    <string name="find_sound_hint">Tap to listen...</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_privacy">Privacy Policy</string>
+    <string name="nav_about">About</string>
+    <string name="nav_github_about">GitHub / About</string>
+    <string name="nav_version">Version %s</string>
 </resources>

@@ -29,7 +29,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.tuhoang.silentpipe.ui.manager.ClipboardHelper;
 import com.tuhoang.silentpipe.ui.manager.DownloadHelper;
 import com.tuhoang.silentpipe.ui.manager.NavigationHelper;
-import com.tuhoang.silentpipe.data.FavoriteItem;
+
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -107,6 +107,23 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
             }
         }
+
+        // Handle Back Press
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                androidx.drawerlayout.widget.DrawerLayout drawer = findViewById(R.id.drawer_layout);
+                if (drawer != null && drawer.isDrawerOpen(androidx.core.view.GravityCompat.END)) {
+                    drawer.closeDrawer(androidx.core.view.GravityCompat.END);
+                } else if (playerView.getVisibility() == View.VISIBLE && findViewById(R.id.fab_minimize).getVisibility() == View.VISIBLE) {
+                    togglePlayer(false); // Minimize player on back
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                    setEnabled(true);
+                }
+            }
+        });
     }
 
     private void setupButtons() {
@@ -219,11 +236,11 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     private void showSpeedDialog() {
         if (mediaController == null) return;
         
-        String[] speeds = {"0.5x", "0.75x", "1.0x", "1.25x", "1.5x", "2.0x", "Custom"};
+        String[] speeds = {"0.5x", "0.75x", "1.0x", "1.25x", "1.5x", "2.0x", getString(R.string.dialog_speed_custom)};
         float[] values = {0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f};
 
         new androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Playback Speed")
+            .setTitle(getString(R.string.dialog_speed_title))
             .setItems(speeds, (dialog, which) -> {
                 if (which < values.length) {
                     setSpeed(values[which]);
@@ -237,12 +254,12 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     private void showCustomSpeedDialog() {
         android.widget.EditText input = new android.widget.EditText(this);
         input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        input.setHint("Enter speed (e.g. 1.1)");
+        input.setHint(getString(R.string.dialog_custom_speed_hint));
 
         new androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Custom Speed")
+            .setTitle(getString(R.string.dialog_custom_speed_title))
             .setView(input)
-            .setPositiveButton("Set", (dialog, which) -> {
+            .setPositiveButton(getString(R.string.dialog_set), (dialog, which) -> {
                 try {
                     float speed = Float.parseFloat(input.getText().toString());
                     setSpeed(speed);
@@ -250,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                     Toast.makeText(this, "Invalid number", Toast.LENGTH_SHORT).show();
                 }
             })
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show();
     }
 
@@ -276,14 +293,14 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                     runOnUiThread(() -> {
                         animateFab(fab);
                         fab.setImageResource(android.R.drawable.btn_star_big_off);
-                        Toast.makeText(this, "Removed from Favorites", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.toast_fav_removed), Toast.LENGTH_SHORT).show();
                     });
                 } else {
                     db.favoriteDao().insert(currentMediaItem);
                     runOnUiThread(() -> {
                         animateFab(fab);
                         fab.setImageResource(android.R.drawable.btn_star_big_on);
-                        Toast.makeText(this, "Added to Favorites", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.toast_fav_added), Toast.LENGTH_SHORT).show();
                     });
                 }
             }).start();
@@ -384,19 +401,19 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         if (!prefill.isEmpty()) input.setSelection(prefill.length());
         
         new androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Enter Media URL")
-            .setMessage("Enter a YouTube or TikTok link to play (Background supported)")
+            .setTitle(getString(R.string.dialog_url_title))
+            .setMessage(getString(R.string.dialog_url_message))
             .setView(input)
-            .setPositiveButton("Play", (dialog, which) -> {
+            .setPositiveButton(getString(R.string.dialog_play), (dialog, which) -> {
                 String url = input.getText().toString().trim();
                 String normalized = (clipboardHelper != null) ? clipboardHelper.normalizeUrl(url) : url;
                 if (normalized != null) {
                     loadVideo(normalized);
                 } else {
-                    Toast.makeText(this, "Invalid URL", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.toast_invalid_url), Toast.LENGTH_SHORT).show();
                 }
             })
-            .setNegativeButton("Cancel", (dialog, which) -> dialog.cancel())
+            .setNegativeButton(getString(R.string.dialog_cancel), (dialog, which) -> dialog.cancel())
             .setCancelable(true)
             .show();
     }
@@ -421,7 +438,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     public void loadVideo(String url) {
         ignoreNextClipboardCheck = true; 
         runOnUiThread(() -> {
-            Toast.makeText(this, "Đang xử lý link...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.toast_processing_link), Toast.LENGTH_SHORT).show();
             playerView.setVisibility(View.VISIBLE);
             togglePlayer(true); 
         });
@@ -436,7 +453,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 PyObject result = module.callAttr("extract_info", url, preferHq);
 
                 if (result == null) {
-                    runOnUiThread(() -> Toast.makeText(this, "Lỗi: Không nhận được phản hồi từ Python!", Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_player, "No response"), Toast.LENGTH_LONG).show());
                     return;
                 }
 
@@ -446,8 +463,8 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 PyObject sourceObj = result.callAttr("get", "source_info");
 
                 String streamUrl = (urlObj != null) ? urlObj.toString() : null;
-                String title = (titleObj != null) ? titleObj.toString() : "Unknown Title";
-                String sourceInfo = (sourceObj != null) ? sourceObj.toString() : "Source: YouTube";
+                String title = (titleObj != null) ? titleObj.toString() : getString(R.string.unknown_title);
+                String sourceInfo = (sourceObj != null) ? sourceObj.toString() : getString(R.string.source_youtube);
 
                 if (streamUrl != null && !streamUrl.isEmpty() && !streamUrl.equals("None")) {
                     final String finalUrl = streamUrl;
@@ -456,7 +473,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                     final String finalSourceInfo = sourceInfo;
                     
                     PyObject uploaderObj = result.callAttr("get", "uploader");
-                    final String finalUploader = (uploaderObj != null) ? uploaderObj.toString() : "Unknown Uploader";
+                    final String finalUploader = (uploaderObj != null) ? uploaderObj.toString() : getString(R.string.unknown_uploader);
                     final long duration = 0; 
 
                     runOnUiThread(() -> {
@@ -473,7 +490,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                                 mediaController.setMediaItem(mediaItem);
                                 mediaController.prepare();
                                 mediaController.play();
-                                Toast.makeText(this, "Playing: " + finalTitle, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, getString(R.string.toast_playing, finalTitle), Toast.LENGTH_SHORT).show();
                                 // Update Title and Source in Custom Controller
                                 android.widget.TextView tvTitle = playerView.findViewById(R.id.tv_player_title);
                                 if (tvTitle != null) tvTitle.setText(finalTitle);
@@ -536,20 +553,20 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                                 }).start();
                                 
                             } catch (Exception e) {
-                                Toast.makeText(this, "Lỗi Player: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                Toast.makeText(this, getString(R.string.toast_error_player, e.getMessage()), Toast.LENGTH_LONG).show();
                             }
                         }
                     });
                 } else if (errorObj != null && !errorObj.toString().equals("None")) {
                     String error = errorObj.toString();
-                    runOnUiThread(() -> Toast.makeText(this, "Lỗi Python: " + error, Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_python, error), Toast.LENGTH_LONG).show());
                 } else {
                     String rawResult = result.toString();
-                    runOnUiThread(() -> Toast.makeText(this, "Lỗi KD (Invalid): " + rawResult, Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, rawResult), Toast.LENGTH_LONG).show());
                 }
             } catch (Throwable e) {
                 android.util.Log.e("MainActivity", "Critical Error in loadVideo", e);
-                runOnUiThread(() -> Toast.makeText(this, "Lỗi nghiêm trọng: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, e.getMessage()), Toast.LENGTH_LONG).show());
             }
         }).start();
     }

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SilentPipe</string>
+    <string name="title_home">Trang chủ</string>
+    <string name="title_favorites">Yêu thích</string>
+    <string name="title_settings">Cài đặt</string>
+    <string name="enter_media_url">Nhập link YouTube/TikTok/Spotify</string>
+    <string name="analyze_and_play">Phân tích &amp; Phát</string>
+    <string name="home_guide_text">Chào mừng đến với SilentPipe!\n\nDán liên kết ở trên hoặc chia sẻ từ ứng dụng khác.\n\nHỗ trợ: YouTube, TikTok, Spotify</string>
+
+    <!-- Settings -->
+    <string name="pref_appearance">Giao diện</string>
+    <string name="pref_theme_default">Giao diện: Mặc định hệ thống</string>
+    <string name="pref_theme_light">Giao diện: Sáng</string>
+    <string name="pref_theme_dark">Giao diện: Tối</string>
+    <string name="pref_language_title">Ngôn ngữ</string>
+    <string name="pref_language_en">Ngôn ngữ: English</string>
+    <string name="pref_language_vi">Ngôn ngữ: Tiếng Việt</string>
+    <string name="pref_permissions">Quyền hạn</string>
+    <string name="pref_allow_notifications">Cho phép thông báo</string>
+    <string name="pref_allow_notifications_13">Cho phép thông báo (Android 13+)</string>
+    <string name="pref_allow_microphone">Cho phép Micro (cho Tìm nhạc)</string>
+    <string name="pref_data_management">Quản lý dữ liệu</string>
+    <string name="pref_backup">Sao lưu Yêu thích (Xuất JSON)</string>
+    <string name="pref_restore">Khôi phục Yêu thích (Nhập JSON)</string>
+    <string name="pref_shortcuts">Lối tắt</string>
+    <string name="pref_add_shortcut_home">Thêm lối tắt màn hình chính</string>
+    <string name="pref_add_shortcut_qs">Thêm vào Cài đặt nhanh (Android 13+)</string>
+    <string name="pref_audio">Âm thanh</string>
+    <string name="pref_audio_equalizer">Bộ chỉnh âm / Tuning</string>
+    <string name="pref_hq_audio">Ưu tiên YouTube Music (HQ)</string>
+    <string name="pref_skip_interval">Bước nhảy: %ds</string>
+    <string name="pref_about">Thông tin</string>
+    <string name="pref_about_content">SilentPipe v%s\nTác giả: tuhoang / thtcsec</string>
+    <string name="pref_github">Xem trên GitHub</string>
+    <string name="pref_star_github">Đừng ngần ngại tặng sao trên GitHub nhé! ⭐</string>
+    <string name="select_app_theme">Chọn giao diện</string>
+    <string name="select_language">Chọn ngôn ngữ</string>
+    <string name="system_default">Mặc định hệ thống</string>
+    <string name="light">Sáng</string>
+    <string name="dark">Tối</string>
+    <string name="english">English</string>
+    <string name="vietnamese">Tiếng Việt</string>
+    
+    <!-- Toast/Dialogs -->
+    <string name="backup_success">Đã lưu sao lưu vào Tải xuống</string>
+    <string name="restore_success">Khôi phục yêu thích thành công</string>
+    <string name="restore_fail">Khôi phục thất bại</string>
+    <string name="shortcut_added">Đã thêm lối tắt vào Màn hình chính</string>
+    <string name="qs_tile_added">Đã thêm ô vào Cài đặt nhanh</string>
+    
+    <!-- MainActivity -->
+    <string name="toast_processing_link">Đang xử lý liên kết...</string>
+    <string name="toast_invalid_url">URL không hợp lệ</string>
+    <string name="toast_error_python">Lỗi Python: %s</string>
+    <string name="toast_error_player">Lỗi Player: %s</string>
+    <string name="toast_critical_error">Lỗi nghiêm trọng: %s</string>
+    <string name="toast_playing">Đang phát: %s</string>
+    <string name="toast_fav_added">Đã thêm vào Yêu thích</string>
+    <string name="toast_fav_removed">Đã xóa khỏi Yêu thích</string>
+    <string name="dialog_speed_title">Tốc độ phát</string>
+    <string name="dialog_speed_custom">Tùy chỉnh</string>
+    <string name="dialog_custom_speed_title">Tốc độ tùy chỉnh</string>
+    <string name="dialog_custom_speed_hint">Nhập tốc độ (vd: 1.1)</string>
+    <string name="dialog_set">Đặt</string>
+    <string name="dialog_cancel">Hủy</string>
+    <string name="dialog_url_title">Nhập liên kết Media</string>
+    <string name="dialog_url_message">Nhập liên kết YouTube hoặc TikTok để phát (Hỗ trợ chạy nền)</string>
+    <string name="dialog_play">Phát</string>
+    <string name="unknown_title">Không xác định</string>
+    <string name="unknown_uploader">Người đăng không xác định</string>
+    <string name="source_youtube">Nguồn: YouTube</string>
+
+    <!-- Navigation Drawer -->
+    <string name="nav_find_sound">Tìm nhạc</string>
+    <string name="find_sound_hint">Chạm để nghe...</string>
+    <string name="nav_settings">Cài đặt</string>
+    <string name="nav_privacy">Chính sách bảo mật</string>
+    <string name="nav_about">Thông tin</string>
+    <string name="nav_github_about">GitHub / Thông tin</string>
+    <string name="nav_version">Phiên bản %s</string>
+</resources>
