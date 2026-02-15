@@ -331,6 +331,32 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             } catch (ExecutionException | InterruptedException e) {
                 android.util.Log.e("MainActivity", "Error initializing MediaController", e);
             }
+            
+            // Sync UI state
+            if (mediaController != null && 
+               (mediaController.getPlaybackState() == androidx.media3.common.Player.STATE_READY || 
+                mediaController.getPlaybackState() == androidx.media3.common.Player.STATE_BUFFERING ||
+                mediaController.getPlaybackState() == androidx.media3.common.Player.STATE_ENDED ||
+                mediaController.isPlaying())) {
+                    
+                 // Restore metadata if possible (optional, but UI sync is key)
+                 if (mediaController.getMediaMetadata() != null) {
+                     CharSequence title = mediaController.getMediaMetadata().title;
+                     if (title != null) {
+                         android.widget.TextView tvTitle = playerView.findViewById(R.id.tv_player_title);
+                         if (tvTitle != null) tvTitle.setText(title);
+                         
+                         android.widget.TextView tvNowPlaying = findViewById(R.id.tv_now_playing);
+                         if (tvNowPlaying != null) {
+                             tvNowPlaying.setText(title);
+                             tvNowPlaying.setSelected(true);
+                         }
+                     }
+                 }
+                 
+                 togglePlayer(true);
+            }
+
         }, MoreExecutors.directExecutor());
     }
 
@@ -355,7 +381,20 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     private void handleIntent(Intent intent) {
         if ("com.tuhoang.silentpipe.ACTION_PLAY_CLIPBOARD".equals(intent.getAction())) {
             clipboardHelper.checkClipboard(false);
+            setIntent(new Intent()); // Consume intent
             return;
+        }
+
+        if ("com.tuhoang.silentpipe.ACTION_OPEN_ADVANCED_EQ".equals(intent.getAction())) {
+             try {
+                androidx.navigation.NavController navController = 
+                    androidx.navigation.Navigation.findNavController(this, R.id.nav_host_fragment);
+                navController.navigate(R.id.navigation_advanced_eq);
+             } catch (Exception e) { 
+                android.util.Log.e(TAG, "Error navigating to advanced EQ", e);
+             }
+             setIntent(new Intent()); // Consume intent
+             return;
         }
         
         ignoreNextClipboardCheck = true; // Intent handling should suppress auto-check
@@ -366,6 +405,8 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 String normalizedUrl = clipboardHelper.normalizeUrl(sharedText);
                 if (normalizedUrl != null) {
                     loadVideo(normalizedUrl);
+                    intent.removeExtra(Intent.EXTRA_TEXT); // Consume extra to prevent re-play on resume
+                    intent.setAction(""); 
                 }
             }
         } else if (Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction()) && "text/plain".equals(intent.getType())) {
@@ -374,6 +415,8 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 String normalizedUrl = clipboardHelper.normalizeUrl(sharedTexts.get(0));
                 if (normalizedUrl != null) {
                     loadVideo(normalizedUrl);
+                    intent.removeExtra(Intent.EXTRA_TEXT); // Consume extra
+                     intent.setAction("");
                 }
             }
         }

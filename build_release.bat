@@ -1,5 +1,6 @@
 @echo off
 echo Building SilentPipe Release APK...
+call gradlew.bat clean
 call gradlew.bat assembleRelease
 if %ERRORLEVEL% EQU 0 (
     echo.

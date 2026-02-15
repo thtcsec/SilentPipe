@@ -12,6 +12,7 @@ import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -27,9 +28,11 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.tuhoang.silentpipe.R;
 import com.tuhoang.silentpipe.core.service.PlaybackService;
 
+import java.io.File;
 import java.util.Collections;
 
 public class SettingsActivity extends AppCompatActivity {
+    private static final String TAG = "SettingsActivity";
     
     private SharedPreferences prefs;
     private ActivityResultLauncher<String> requestNotificationPermissionLauncher;
@@ -89,15 +92,16 @@ public class SettingsActivity extends AppCompatActivity {
         );
 
         // Listeners
-        switchNotif.setOnClickListener(v -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                if (switchNotif.isChecked()) {
-                    requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
-                } else {
-                    // Cannot revoke programmatically, guide user to settings? For now just UI toggle.
-                    Toast.makeText(this, "Revoke permission in System Settings", Toast.LENGTH_LONG).show();
-                    switchNotif.setChecked(true); // Revert
+        switchNotif.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    requestNotificationPermissionLauncher.launch(
+                            Manifest.permission.POST_NOTIFICATIONS);
                 }
+            } else {
+                // Cannot revoke programmatically, guide user to settings? For now just UI toggle.
+                Toast.makeText(this, "Revoke permission in System Settings", Toast.LENGTH_LONG).show();
+                switchNotif.setChecked(true); // Revert
             }
         });
 
@@ -107,18 +111,25 @@ public class SettingsActivity extends AppCompatActivity {
             } else {
                  Toast.makeText(this, "Revoke permission in System Settings", Toast.LENGTH_LONG).show();
                  switchMic.setChecked(true); // Revert
+                //openAppSettings();
             }
         });
     }
 
     private void setupThemeAndLanguage() {
-        Button btnTheme = findViewById(R.id.btn_theme);
+        android.view.View btnTheme = findViewById(R.id.btn_theme);
         btnTheme.setOnClickListener(v -> showThemeDialog());
 
-        Button btnLanguage = findViewById(R.id.btn_language);
+        android.view.View btnLanguage = findViewById(R.id.btn_language);
         btnLanguage.setOnClickListener(v -> showLanguageDialog());
     }
+    private void openAppSettings() {
+        Intent intent = new Intent(
+                android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
 
+        intent.setData(Uri.fromParts("package", getPackageName(), null));
+        startActivity(intent);
+    }
     private void showThemeDialog() {
         String[] themes = {"System Default", "Light", "Dark"};
         int currentMode = androidx.appcompat.app.AppCompatDelegate.getDefaultNightMode();
@@ -162,39 +173,97 @@ public class SettingsActivity extends AppCompatActivity {
             .show();
     }
 
+    private void setupCacheCleaning() {
+        View btnCleanCache = findViewById(R.id.btn_clean_cache);
+        updateCacheSize();
+
+        btnCleanCache.setOnClickListener(v -> {
+            long size = 0;
+            try {
+                size += getDirSize(getCacheDir());
+                size += getDirSize(getExternalCacheDir());
+            } catch (Exception e) {
+                android.util.Log.e(TAG, "Error calculating cache size", e);
+            }
+
+            deleteDir(getCacheDir());
+            File external = getExternalCacheDir();
+            if (external != null)
+                deleteDir(external);
+            
+            String formattedSize = android.text.format.Formatter.formatFileSize(this, size);
+            Toast.makeText(this, getString(R.string.cache_cleaned, formattedSize), Toast.LENGTH_SHORT).show();
+            updateCacheSize();
+        });
+    }
+
+    private boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            if (children != null) {
+                for (String child : children) {
+                    boolean success = deleteDir(new File(dir, child));
+                    if (!success) {
+                        return false;
+                    }
+                }
+            }
+            return dir.delete();
+        } else if (dir != null && dir.isFile()) {
+            return dir.delete();
+        } else {
+            return false;
+        }
+    }
+
+    private long getDirSize(File dir) {
+        long size = 0;
+        if (dir != null && dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        size += getDirSize(file);
+                    } else {
+                        size += file.length();
+                    }
+                }
+            }
+        } else if (dir != null && dir.isFile()) {
+            size = dir.length();
+        }
+        return size;
+    }
+
+    private void updateCacheSize() {
+        TextView tvCache = findViewById(R.id.tv_cache_size);
+        if (tvCache == null) return;
+        
+        new Thread(() -> {
+            long size = 0;
+            try {
+                size += getDirSize(getCacheDir());
+                size += getDirSize(getExternalCacheDir());
+            } catch (Exception e) {
+                android.util.Log.e(TAG, "Error updating cache size", e);
+            }
+            
+            long finalSize = size;
+            runOnUiThread(() -> {
+                String formatted = android.text.format.Formatter.formatFileSize(this, finalSize);
+                tvCache.setText(formatted);
+            });
+        }).start();
+    }
+    
     private void setupDataManagement() {
-        findViewById(R.id.btn_backup).setOnClickListener(v -> Toast.makeText(this, "Backup feature coming soon!", Toast.LENGTH_SHORT).show());
-        findViewById(R.id.btn_restore).setOnClickListener(v -> Toast.makeText(this, "Restore feature coming soon!", Toast.LENGTH_SHORT).show());
+        setupCacheCleaning();
+        // Backup/Restore removed from UI for now as per design or can be added back if needed
     }
 
     private void setupShortcuts() {
-        findViewById(R.id.btn_add_shortcut_home).setOnClickListener(v -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                ShortcutManager shortcutManager = getSystemService(ShortcutManager.class);
-                if (shortcutManager.isRequestPinShortcutSupported()) {
-                    Intent intent = new Intent(this, com.tuhoang.silentpipe.ui.main.MainActivity.class);
-                    intent.setAction(Intent.ACTION_MAIN);
-                    
-                    ShortcutInfo pinShortcutInfo = new ShortcutInfo.Builder(this, "main_shortcut")
-                            .setShortLabel(getString(R.string.app_name))
-                            .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
-                            .setIntent(intent)
-                            .build();
-
-                    Intent pinnedShortcutCallbackIntent = shortcutManager.createShortcutResultIntent(pinShortcutInfo);
-                    // android.app.PendingIntent successCallback = android.app.PendingIntent.getBroadcast(this, 0, pinnedShortcutCallbackIntent, android.app.PendingIntent.FLAG_IMMUTABLE);
-
-                    shortcutManager.requestPinShortcut(pinShortcutInfo, null);
-                    Toast.makeText(this, "Requesting shortcut...", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(this, "Not supported on this Android version", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        findViewById(R.id.btn_add_qs_tile).setOnClickListener(v -> 
-            Toast.makeText(this, "Add 'SilentPipe' from your Quick Settings panel edit menu.", Toast.LENGTH_LONG).show()
-        );
+         // Shortcuts removed from new UI for cleanliness, or can be added back.
+         // For now, focusing on the main requested items.
     }
 
     private void setupAudioSettings() {
@@ -219,17 +288,20 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         // Skip Time
-        Button btnSkip = findViewById(R.id.btn_skip_time);
-        updateSkipTimeButton(btnSkip);
-        btnSkip.setOnClickListener(v -> showSkipTimeDialog(btnSkip));
+        android.view.View btnSkip = findViewById(R.id.btn_skip_time);
+        updateSkipTimeText();
+        btnSkip.setOnClickListener(v -> showSkipTimeDialog());
     }
     
-    private void updateSkipTimeButton(Button btn) {
-        int current = prefs.getInt("pref_skip_time", 10);
-        btn.setText("Skip Interval: " + current + "s");
+    private void updateSkipTimeText() {
+        TextView tvVal = findViewById(R.id.tv_skip_time_val);
+        if (tvVal != null) {
+            int current = prefs.getInt("pref_skip_time", 10);
+            tvVal.setText(current + "s");
+        }
     }
 
-    private void showSkipTimeDialog(Button btn) {
+    private void showSkipTimeDialog() {
         EditText input = new EditText(this);
         input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
         input.setHint("Seconds (e.g. 10)");
@@ -242,7 +314,7 @@ public class SettingsActivity extends AppCompatActivity {
                     int val = Integer.parseInt(input.getText().toString());
                     if (val <= 0) val = 10;
                     prefs.edit().putInt("pref_skip_time", val).apply();
-                    updateSkipTimeButton(btn);
+                    updateSkipTimeText();
                 } catch (NumberFormatException e) {
                     Toast.makeText(this, "Invalid number", Toast.LENGTH_SHORT).show();
                 }
@@ -252,43 +324,15 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
 
-    // Service Binding to ensure PlaybackService creates AudioFlinger session
-    private boolean isBound = false;
-    private android.content.ServiceConnection connection = new android.content.ServiceConnection() {
-        @Override
-        public void onServiceConnected(android.content.ComponentName className, android.os.IBinder service) {
-            isBound = true;
-        }
-        @Override
-        public void onServiceDisconnected(android.content.ComponentName arg0) {
-            isBound = false;
-        }
-    };
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        // Bind to service to ensure it's alive for Equalizer
-        Intent intent = new Intent(this, PlaybackService.class);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (isBound) {
-            unbindService(connection);
-            isBound = false;
-        }
-    }
+    // Service Binding ...
 
     private void setupAbout() {
         try {
             String version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             TextView tvAbout = findViewById(R.id.tv_about_content);
-            tvAbout.setText("SilentPipe v" + version + "\nAuthor: tuhoang / thtcsec");
+            if (tvAbout != null) tvAbout.setText("SilentPipe v" + version + "\nAuthor: tuhoang / thtcsec");
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+            android.util.Log.e(TAG, "Package name not found", e);
         }
 
         findViewById(R.id.btn_github).setOnClickListener(v -> {

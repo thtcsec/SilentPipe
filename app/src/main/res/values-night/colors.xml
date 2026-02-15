@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode Palette -->
+    <color name="colorPrimary">#263238</color>      <!-- Blue Grey 900 -->
+    <color name="colorPrimaryDark">#000a12</color>  <!-- Very Dark -->
+    <color name="colorAccent">#26A69A</color>       <!-- Teal 400 (Same accent works well) -->
+    
+    <color name="background_light">#121212</color>  <!-- Material Dark Background -->
+    <color name="text_primary">#ECEFF1</color>      <!-- Light Text -->
+    <color name="text_secondary">#B0BEC5</color>    <!-- Grey Text -->
+</resources>

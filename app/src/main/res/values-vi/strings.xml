@@ -23,6 +23,9 @@
     <string name="pref_data_management">Quản lý dữ liệu</string>
     <string name="pref_backup">Sao lưu Yêu thích (Xuất JSON)</string>
     <string name="pref_restore">Khôi phục Yêu thích (Nhập JSON)</string>
+    <string name="pref_clean_cache">Dọn dẹp bộ nhớ đệm (%s)</string>
+    <string name="cache_cleaned">Đã dọn dẹp bộ nhớ đệm: giải phóng %s</string>
+    <string name="calculating_cache">Đang tính toán...</string>
     <string name="pref_shortcuts">Lối tắt</string>
     <string name="pref_add_shortcut_home">Thêm lối tắt màn hình chính</string>
     <string name="pref_add_shortcut_qs">Thêm vào Cài đặt nhanh (Android 13+)</string>

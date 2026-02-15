@@ -1,3 +1,4 @@
+package com.tuhoang.silentpipe.ui.main;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -22,6 +23,9 @@ import androidx.fragment.app.Fragment;
 import com.tuhoang.silentpipe.R;
 
 public class FindSoundFragment extends Fragment {
+    public FindSoundFragment() {
+        // Required empty public constructor
+    }
     private static final String TAG = "FindSoundFragment";
     private static final int SAMPLE_RATE = 44100;
     private static final int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
@@ -43,6 +47,7 @@ public class FindSoundFragment extends Fragment {
         requestPermissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             isGranted -> {
+                if (getContext() == null) return;
                 if (isGranted) {
                     startListening();
                 } else {
@@ -73,10 +78,12 @@ public class FindSoundFragment extends Fragment {
     }
     
     private void toggleListening() {
+        if (getContext() == null) return;
+
         if (isListening) {
             stopListening();
         } else {
-            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
                 startListening();
             } else {
                 requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO);
@@ -86,12 +93,14 @@ public class FindSoundFragment extends Fragment {
 
     private void startListening() {
         if (isListening) return;
+        if (getContext() == null) return;
         
         try {
             audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, BUFFER_SIZE);
             
             if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
-                Toast.makeText(getContext(), getString(R.string.find_sound_init_failed), Toast.LENGTH_SHORT).show();
+                if (getContext() != null)
+                    Toast.makeText(getContext(), getString(R.string.find_sound_init_failed), Toast.LENGTH_SHORT).show();
                 return;
             }
             
@@ -102,6 +111,7 @@ public class FindSoundFragment extends Fragment {
             recordingThread = new Thread(() -> {
                 short[] buffer = new short[BUFFER_SIZE];
                 while (isListening) {
+                    if (audioRecord == null) break; 
                     int read = audioRecord.read(buffer, 0, BUFFER_SIZE);
                     if (read > 0) {
                         // Analyze audio logic here (Calculate amplitude for visualizer)
@@ -113,19 +123,22 @@ public class FindSoundFragment extends Fragment {
                         
                         final double finalAmp = amplitude;
                         // Optional: Update UI with amplitude (Visualizer placeholder)
-                         getActivity().runOnUiThread(() -> {
-                             if (tvStatus != null) tvStatus.setText(getString(R.string.find_sound_listening) + " Amp: " + (int)finalAmp);
-                         });
+                        if (getActivity() != null) {
+                             getActivity().runOnUiThread(() -> {
+                                 if (tvStatus != null) tvStatus.setText(getString(R.string.find_sound_listening) + " Amp: " + (int)finalAmp);
+                             });
+                        }
                     }
                 }
             });
             recordingThread.start();
             
         } catch (SecurityException e) {
-            Toast.makeText(getContext(), getString(R.string.find_sound_security_error, e.getMessage()), Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "SecurityException: " + e.getMessage());
+            if (getContext() != null)
+                Toast.makeText(getContext(), getString(R.string.find_sound_security_error, e.getMessage()), Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "SecurityException", e);
         } catch (Exception e) {
-             Log.e(TAG, "Error starting recording: " + e.getMessage());
+             Log.e(TAG, "Error starting recording", e);
         }
     }
 

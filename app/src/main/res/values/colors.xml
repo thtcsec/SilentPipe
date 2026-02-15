@@ -2,13 +2,19 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    
+    <!-- New Palette: Blue Grey & Teal -->
+    <color name="colorPrimary">#37474F</color>      <!-- Blue Grey 800 -->
+    <color name="colorPrimaryDark">#263238</color>  <!-- Blue Grey 900 -->
+    <color name="colorAccent">#26A69A</color>       <!-- Teal 400 -->
+    
+    <color name="background_light">#ECEFF1</color>  <!-- Blue Grey 50 -->
+    <color name="text_primary">#263238</color>
+    <color name="text_secondary">#546E7A</color>
+
+    <!-- Legacy / Standard -->
     <color name="gray">#808080</color>
-    <color name="blue">#0000FF</color>
-    <color name="yellow">#FFFF00</color>
-    <color name="cyan">#00FFFF</color>
-    <color name="orange">#FFA500</color>
-    <color name="green">#008000</color>
-    <color name="red">#FF0000</color>
-    <color name="pink">#FFC0CB</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="blue">#2196F3</color>
+    <color name="red">#E53935</color>
+    <color name="green">#43A047</color>
 </resources>

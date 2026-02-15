@@ -135,8 +135,12 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
                     navController.navigate(R.id.navigation_advanced_eq);
                     dismiss();
                 } catch (Exception e) {
-                     // We are likely in SettingsActivity or somewhere else without the main nav host
-                     android.widget.Toast.makeText(getContext(), "Open Player to access Advanced EQ", android.widget.Toast.LENGTH_SHORT).show();
+                     // We are likely in SettingsActivity
+                     android.content.Intent intent = new android.content.Intent(requireContext(), com.tuhoang.silentpipe.ui.main.MainActivity.class);
+                     intent.setAction("com.tuhoang.silentpipe.ACTION_OPEN_ADVANCED_EQ");
+                     intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                     startActivity(intent);
+                     dismiss();
                 }
             });
         }

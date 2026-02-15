@@ -22,6 +22,9 @@
     <string name="pref_data_management">Data Management</string>
     <string name="pref_backup">Backup Favorites (Export JSON)</string>
     <string name="pref_restore">Restore Favorites (Import JSON)</string>
+    <string name="pref_clean_cache">Clean Cache (%s)</string>
+    <string name="cache_cleaned">Cache cleaned: %s freed</string>
+    <string name="calculating_cache">Calculated Cache...</string>
     <string name="pref_shortcuts">Shortcuts</string>
     <string name="pref_add_shortcut_home">Add Home Screen Shortcut</string>
     <string name="pref_add_shortcut_qs">Add to Quick Settings (Android 13+)</string>

@@ -3,7 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:background="@color/background_light">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -17,11 +19,11 @@
             app:layout_constraintTop_toTopOf="parent"
             app:navigationIcon="?attr/homeAsUpIndicator"
             app:title="@string/nav_settings"
-            app:titleTextColor="?attr/colorOnPrimary" />
+            app:titleTextColor="@color/white" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <com.tuhoang.silentpipe.ui.system.BounceScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true">
@@ -32,171 +34,431 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <!-- APPEARANCE CARD -->
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/pref_appearance"
-                android:textSize="18sp"
+                android:textColor="?attr/colorAccent"
                 android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp" />
 
-            <Button
-                android:id="@+id/btn_theme"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/pref_theme_default"
-                android:drawableLeft="@android:drawable/ic_menu_view"
-                android:drawableStart="@android:drawable/ic_menu_view"
-                android:padding="12dp"/>
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="16dp">
 
-            <Button
-                android:id="@+id/btn_language"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_language_en"
-                android:drawableLeft="@android:drawable/ic_menu_mapmode"
-                android:drawableStart="@android:drawable/ic_menu_mapmode"
-                android:padding="12dp"
-                android:layout_marginTop="8dp"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
+                    <!-- Theme -->
+                    <LinearLayout
+                        android:id="@+id/btn_theme"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_appearance"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/pref_theme_default"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginStart="16dp"/>
+
+                        <ImageView
+                             android:layout_width="24dp"
+                             android:layout_height="24dp"
+                             android:src="@android:drawable/ic_media_play"
+                             app:tint="@color/text_secondary"
+                             android:rotation="90" 
+                             android:alpha="0.5"/>
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+
+                    <!-- Language -->
+                    <LinearLayout
+                        android:id="@+id/btn_language"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_menu_mapmode"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/pref_language_en"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginStart="16dp"/>
+                            
+                        <ImageView
+                             android:layout_width="24dp"
+                             android:layout_height="24dp"
+                             android:src="@android:drawable/ic_media_play"
+                             app:tint="@color/text_secondary"
+                             android:rotation="90"
+                             android:alpha="0.5"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- AUDIO CARD -->
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_permissions"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"/>
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switch_notification_permission"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_allow_notifications"
-                android:textSize="14sp"
-                android:padding="8dp" />
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switch_microphone_permission"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_allow_microphone"
-                android:textSize="14sp"
-                android:padding="8dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_data_management"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"/>
-
-            <Button
-                android:id="@+id/btn_backup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_backup" />
-
-            <Button
-                android:id="@+id/btn_restore"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_restore" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_shortcuts"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"/>
-
-            <Button
-                android:id="@+id/btn_add_shortcut_home"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_add_shortcut_home" />
-
-            <Button
-                android:id="@+id/btn_add_qs_tile"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_add_shortcut_qs" />
-
-            <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/pref_audio"
-                android:textSize="18sp"
+                android:textColor="?attr/colorAccent"
                 android:textStyle="bold"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp" />
 
-            <Button
-                android:id="@+id/btn_equalizer"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/pref_audio_equalizer" />
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="16dp">
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switch_hq_audio"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_hq_audio"
-                android:textSize="14sp"
-                android:padding="8dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-            <Button
-                android:id="@+id/btn_skip_time"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Skip Interval: 10s"
-                android:drawableLeft="@android:drawable/ic_menu_recent_history"
-                android:drawableStart="@android:drawable/ic_menu_recent_history"
-                android:padding="12dp"/>
+                    <!-- Equalizer -->
+                    <LinearLayout
+                        android:id="@+id/btn_equalizer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_audio"
+                            app:tint="?attr/colorPrimary" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="?android:attr/listDivider"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"/>
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/pref_audio_equalizer"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginStart="16dp"/>
+                        
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_media_play" app:tint="@color/text_secondary" android:rotation="90" android:alpha="0.5"/>
+                    </LinearLayout>
 
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+
+                    <!-- HQ Audio Switch -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_lock_silent_mode_off"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/pref_hq_audio"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginStart="16dp"/>
+                        
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_hq_audio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+
+                     <!-- Skip Time -->
+                    <LinearLayout
+                        android:id="@+id/btn_skip_time"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_media_ff"
+                            app:tint="?attr/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="16dp">
+                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Skip Interval"
+                                android:textSize="16sp"
+                                android:textColor="@color/text_primary"/>
+                             <TextView
+                                android:id="@+id/tv_skip_time_val"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="10s"
+                                android:textSize="14sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+                        
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_media_play" app:tint="@color/text_secondary" android:rotation="90" android:alpha="0.5"/>
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- DATA CARD -->
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/pref_data_management"
+                android:textColor="?attr/colorAccent"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                     <!-- Clear Cache -->
+                    <LinearLayout
+                        android:id="@+id/btn_clean_cache"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_data"
+                            app:tint="?attr/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="16dp">
+                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/pref_clean_cache"
+                                android:textSize="16sp"
+                                android:textColor="@color/text_primary"/>
+                             <TextView
+                                android:id="@+id/tv_cache_size"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Calculating..."
+                                android:textSize="14sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_delete" app:tint="?attr/colorAccent"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            
+             <!-- PRIVACY CARD -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/pref_permissions"
+                android:textColor="?attr/colorAccent"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Notification Permission -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_security"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/pref_allow_notifications"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginStart="16dp"/>
+                        
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_notification_permission"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+
+                    <!-- Microphone Permission -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_security"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/pref_allow_microphone"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginStart="16dp"/>
+                        
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_microphone_permission"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ABOUT CARD -->
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/pref_about"
-                android:textSize="18sp"
+                android:textColor="?attr/colorAccent"
                 android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp" />
 
-            <TextView
-                android:id="@+id/tv_about_content"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="SilentPipe v...\nAuthor: tuhoang / thtcsec"
-                android:layout_marginBottom="8dp"/>
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="16dp">
 
-            <Button
-                android:id="@+id/btn_github"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_github" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_star_github"
-                android:gravity="center"
-                android:layout_marginTop="8dp"
-                android:textStyle="italic"
-                android:textColor="?android:attr/textColorSecondary" />
+                     <!-- GitHub -->
+                    <LinearLayout
+                        android:id="@+id/btn_github"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_info"
+                            app:tint="?attr/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="16dp">
+                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/pref_github"
+                                android:textSize="16sp"
+                                android:textColor="@color/text_primary"/>
+                             <TextView
+                                android:id="@+id/tv_about_content"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Version ..."
+                                android:textSize="14sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_view" app:tint="@color/text_secondary" android:rotation="270" android:alpha="0.5"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
-
-    </com.tuhoang.silentpipe.ui.system.BounceScrollView>
-
+    </androidx.core.widget.NestedScrollView>
 </LinearLayout>

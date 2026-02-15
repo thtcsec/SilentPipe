@@ -7,14 +7,15 @@ plugins {
 
 android {
     namespace = "com.tuhoang.silentpipe"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.tuhoang.silentpipe"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 4
-        versionName = "1.3"
+        targetSdk = 36
+        versionCode = 5
+        versionName = "1.4"
+        multiDexEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -22,10 +23,20 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.keystore")
+            storePassword = "trustedrelease"
+            keyAlias = "silentpipe"
+            keyPassword = "trustedrelease"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -34,12 +45,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
-    }
+    // kotlinOptions is deprecated, moved configuration to tasks.withType outside this block
 
     buildFeatures {
         buildConfig = true
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
     }
 }
 
