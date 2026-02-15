@@ -20,6 +20,16 @@
         android:layout_height="wrap_content"
         android:max="3000" 
         android:progress="1500" />
+        
+    <TextView
+        android:id="@+id/text_level"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0dB"
+        android:textColor="#AAAAAA"
+        android:textSize="10sp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="-4dp"/>
         <!-- Max 3000 for +/- 15dB range usually (1500 center) -->
 
 </LinearLayout>

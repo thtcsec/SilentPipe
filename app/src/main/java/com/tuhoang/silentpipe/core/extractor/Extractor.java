@@ -14,7 +14,7 @@ public class Extractor {
         try {
             NewPipe.init(new OkHttpDownloader());
         } catch (Exception e) {
-            e.printStackTrace();
+            android.util.Log.e("Extractor", "Extraction failed", e);
         }
     }
 

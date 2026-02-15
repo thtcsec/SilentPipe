@@ -22,4 +22,10 @@
         android:name="com.tuhoang.silentpipe.ui.main.SettingsFragment"
         android:label="@string/title_settings"
         tools:layout="@layout/fragment_settings" />
+
+    <fragment
+        android:id="@+id/navigation_advanced_eq"
+        android:name="com.tuhoang.silentpipe.ui.main.AdvancedEqualizerFragment"
+        android:label="Advanced Equalizer"
+        tools:layout="@layout/fragment_advanced_equalizer" />
 </navigation>

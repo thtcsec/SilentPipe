@@ -59,7 +59,24 @@
         android:id="@+id/btn_equalizer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Equalizer / Sound Tuning" />
+        android:text="Audio Equalizer / Tuning" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switch_hq_audio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Prioritize YouTube Music (HQ)"
+        android:textSize="14sp"
+        android:padding="8dp" />
+
+    <Button
+        android:id="@+id/btn_skip_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Skip Interval: 10s"
+        android:drawableLeft="@android:drawable/ic_menu_recent_history" 
+        android:drawableStart="@android:drawable/ic_menu_recent_history"
+        android:padding="12dp"/>
 
     <View
         android:layout_width="match_parent"

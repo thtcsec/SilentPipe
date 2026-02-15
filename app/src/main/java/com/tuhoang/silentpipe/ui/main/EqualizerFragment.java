@@ -65,6 +65,13 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+        View view = getView();
+        if (view != null) {
+            TextView tvPreset = view.findViewById(R.id.tv_current_preset);
+            if (tvPreset != null) {
+                tvPreset.setText(audioManager.getCurrentPresetName());
+            }
+        }
 
         // Switch
         switchEnable.setChecked(audioManager.isEnabled());
@@ -115,6 +122,18 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
             });
 
             bandsContainer.addView(bandView);
+        }
+        
+        // Handle Maximize
+        View btnMaximize = getView().findViewById(R.id.btn_eq_maximize);
+        if (btnMaximize != null) {
+            btnMaximize.setOnClickListener(v -> {
+                dismiss(); // Limit screen clutter
+                // Navigate in main Activity's host
+                androidx.navigation.NavController navController = 
+                    androidx.navigation.Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+                navController.navigate(R.id.navigation_advanced_eq);
+            });
         }
     }
 

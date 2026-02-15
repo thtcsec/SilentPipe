@@ -30,7 +30,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 public class SettingsFragment extends Fragment {
-
+    private static final String TAG = "SettingsFragment";
     private ActivityResultLauncher<Intent> exportLauncher;
     private ActivityResultLauncher<Intent> importLauncher;
     private Gson gson = new Gson();
@@ -90,7 +90,6 @@ public class SettingsFragment extends Fragment {
         view.findViewById(R.id.btn_add_qs_tile).setOnClickListener(v -> requestAddTile());
         
         // Link to real Equalizer
-        // Link to real Equalizer
         View btnEq = view.findViewById(R.id.btn_equalizer);
         
         if (btnEq != null) {
@@ -100,6 +99,41 @@ public class SettingsFragment extends Fragment {
                 } else {
                     Toast.makeText(getContext(), "Error: Not attached to MainActivity", Toast.LENGTH_SHORT).show();
                 }
+            });
+
+        }
+        
+        // HQ Audio Switch
+        com.google.android.material.switchmaterial.SwitchMaterial switchHq = view.findViewById(R.id.switch_hq_audio);
+        if (switchHq != null) {
+            android.content.SharedPreferences prefs = requireContext().getSharedPreferences("silentpipe_prefs", android.content.Context.MODE_PRIVATE);
+            switchHq.setChecked(prefs.getBoolean("pref_hq_audio", false));
+            
+            switchHq.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                prefs.edit().putBoolean("pref_hq_audio", isChecked).apply();
+            });
+        }
+        
+        // Skip Time Button
+        Button btnSkip = view.findViewById(R.id.btn_skip_time);
+        if (btnSkip != null) {
+            android.content.SharedPreferences prefs = requireContext().getSharedPreferences("silentpipe_prefs", android.content.Context.MODE_PRIVATE);
+            int currentSkip = prefs.getInt("pref_skip_time", 10);
+            btnSkip.setText("Skip Interval: " + currentSkip + "s");
+            
+            btnSkip.setOnClickListener(v -> {
+                final String[] options = {"5s", "10s", "15s", "30s", "60s"};
+                final int[] values = {5, 10, 15, 30, 60};
+                
+                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Select Skip Interval")
+                    .setItems(options, (dialog, which) -> {
+                        int val = values[which];
+                        prefs.edit().putInt("pref_skip_time", val).apply();
+                        btnSkip.setText("Skip Interval: " + val + "s");
+                        Toast.makeText(getContext(), "Skip time set to " + val + "s", Toast.LENGTH_SHORT).show();
+                    })
+                    .show();
             });
         }
 
@@ -191,7 +225,7 @@ public class SettingsFragment extends Fragment {
                     Toast.makeText(getContext(), "Backup Successful!", Toast.LENGTH_SHORT).show()
                 );
             } catch (Exception e) {
-                e.printStackTrace();
+                android.util.Log.e(TAG, "Error handling preference change", e);
                 requireActivity().runOnUiThread(() -> 
                     Toast.makeText(getContext(), "Backup Failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
                 );
@@ -233,7 +267,7 @@ public class SettingsFragment extends Fragment {
                     Toast.makeText(getContext(), "Restore Successful!", Toast.LENGTH_SHORT).show()
                 );
             } catch (Exception e) {
-                e.printStackTrace();
+                android.util.Log.e(TAG, "Error handling preference change", e);
                 requireActivity().runOnUiThread(() -> 
                     Toast.makeText(getContext(), "Restore Failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
                 );
