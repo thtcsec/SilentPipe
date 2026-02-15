@@ -109,6 +109,35 @@
             android:visibility="gone"
             app:fabSize="mini" />
 
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_now_playing"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="#80000000"
+            app:cardCornerRadius="16dp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="1dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tv_now_playing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="Now Playing..."
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:gravity="center"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+
+        </com.google.android.material.card.MaterialCardView>
+
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_favorite"
             android:layout_width="wrap_content"

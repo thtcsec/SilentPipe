@@ -192,9 +192,13 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         };
         
         View restoreBtn = findViewById(R.id.fab_restore);
+        View nowPlayingCard = findViewById(R.id.card_now_playing);
+        android.widget.TextView tvNowPlaying = findViewById(R.id.tv_now_playing);
 
         if (show) {
             restoreBtn.setVisibility(View.GONE);
+            if (nowPlayingCard != null) nowPlayingCard.setVisibility(View.GONE);
+            
             playerView.setVisibility(View.VISIBLE);
             playerView.animate().alpha(1f).setDuration(200).start();
             for (View view : fabChildren) view.setVisibility(View.VISIBLE);
@@ -202,6 +206,13 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             playerView.animate().alpha(0f).setDuration(200).withEndAction(() -> playerView.setVisibility(View.GONE)).start();
             for (View view : fabChildren) view.setVisibility(View.GONE);
             restoreBtn.setVisibility(View.VISIBLE);
+            
+            if (nowPlayingCard != null && currentMediaItem != null) {
+                nowPlayingCard.setVisibility(View.VISIBLE);
+                if (tvNowPlaying != null) {
+                    tvNowPlaying.setSelected(true); // Trigger marquee
+                }
+            }
         }
     }
 
@@ -463,9 +474,16 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                                 mediaController.prepare();
                                 mediaController.play();
                                 Toast.makeText(this, "Playing: " + finalTitle, Toast.LENGTH_SHORT).show();
-                                
+                                // Update Title and Source in Custom Controller
                                 android.widget.TextView tvTitle = playerView.findViewById(R.id.tv_player_title);
                                 if (tvTitle != null) tvTitle.setText(finalTitle);
+
+                                // Update Now Playing Floating Text
+                                android.widget.TextView tvNowPlaying = findViewById(R.id.tv_now_playing);
+                                if (tvNowPlaying != null) {
+                                    tvNowPlaying.setText(finalTitle);
+                                    tvNowPlaying.setSelected(true);
+                                }
                                 
                                 android.widget.TextView tvSource = playerView.findViewById(R.id.tv_source_info);
                                 if (tvSource != null) tvSource.setText(finalSourceInfo);
