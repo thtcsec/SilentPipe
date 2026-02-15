@@ -1,11 +1,20 @@
 package com.tuhoang.silentpipe.core.audio;
 
+
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.audiofx.BassBoost;
 import android.media.audiofx.Equalizer;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 public class AudioEffectManager {
     private static final String TAG = "AudioEffectManager";
+    private static final String PREF_NAME = "silentpipe_audio_prefs";
+    
+    private Context context;
     private Equalizer equalizer;
     private BassBoost bassBoost;
     private int audioSessionId;
@@ -16,8 +25,10 @@ public class AudioEffectManager {
     private short savedPreset = -1;
     private boolean savedEnabled = true;
 
-    public AudioEffectManager(int audioSessionId) {
+    public AudioEffectManager(Context context, int audioSessionId) {
+        this.context = context.getApplicationContext();
         this.audioSessionId = audioSessionId;
+        loadPrefs(); // Load saved state immediately
         initEffects();
     }
 
@@ -77,6 +88,46 @@ public class AudioEffectManager {
         }
     }
 
+    // Persistence Helpers
+    private void loadPrefs() {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        savedEnabled = prefs.getBoolean("eq_enabled", true);
+        savedBassStrength = (short) prefs.getInt("bass_strength", 0);
+        savedPreset = (short) prefs.getInt("preset_index", -1);
+        
+        String bandsJson = prefs.getString("band_levels", null);
+        if (bandsJson != null) {
+            try {
+                JSONArray jsonArray = new JSONArray(bandsJson);
+                savedBandLevels = new short[jsonArray.length()];
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    savedBandLevels[i] = (short) jsonArray.getInt(i);
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "Error loading band levels", e);
+            }
+        }
+    }
+
+    private void savePrefs() {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        
+        editor.putBoolean("eq_enabled", savedEnabled);
+        editor.putInt("bass_strength", savedBassStrength);
+        editor.putInt("preset_index", savedPreset);
+        
+        if (savedBandLevels != null) {
+            JSONArray jsonArray = new JSONArray();
+            for (short level : savedBandLevels) {
+                jsonArray.put(level);
+            }
+            editor.putString("band_levels", jsonArray.toString());
+        }
+        
+        editor.apply();
+    }
+
     public void setBandLevel(short band, short level) {
         if (equalizer != null) {
             try {
@@ -87,6 +138,7 @@ public class AudioEffectManager {
                 }
                 savedBandLevels[band] = level;
                 savedPreset = -1; // Custom overrides preset
+                savePrefs();
             } catch (Exception e) {
                 Log.e(TAG, "Error setting band level", e);
             }
@@ -99,11 +151,13 @@ public class AudioEffectManager {
     }
 
     public short getNumberOfBands() {
+        // Fallback to Saved if equalizer is null? No, we don't know bands count of device without equalizer instance.
+        // Assuming we need equalizer instance to know bands.
         return equalizer != null ? equalizer.getNumberOfBands() : 0;
     }
 
     public short[] getBandLevelRange() {
-        return equalizer != null ? equalizer.getBandLevelRange() : new short[]{0, 0};
+        return equalizer != null ? equalizer.getBandLevelRange() : new short[]{-1500, 1500}; // Default fallback
     }
 
     public int getCenterFreq(short band) {
@@ -121,6 +175,7 @@ public class AudioEffectManager {
                 Log.e(TAG, "Error setting bass boost", e);
             }
         }
+        savePrefs();
     }
 
     public short getBassBoostStrength() {
@@ -131,6 +186,7 @@ public class AudioEffectManager {
         savedEnabled = enabled;
         if (equalizer != null) equalizer.setEnabled(enabled);
         if (bassBoost != null) bassBoost.setEnabled(enabled);
+        savePrefs();
     }
     
     public boolean isEnabled() {
@@ -139,8 +195,6 @@ public class AudioEffectManager {
 
     public java.util.List<String> getPresetNames() {
         java.util.List<String> presets = new java.util.ArrayList<>();
-        // Add "Custom" as the first option or last? User asked for Custom.
-        // Let's add "Custom" at end or beginning. Standard is often: Flat, Rock... Custom.
         if (equalizer != null) {
             short numberOfPresets = equalizer.getNumberOfPresets();
             for (short i = 0; i < numberOfPresets; i++) {
@@ -165,8 +219,8 @@ public class AudioEffectManager {
             } else {
                 // Must be "Custom"
                 savedPreset = -1; 
-                // Don't change bands, just marking as custom
             }
+            savePrefs();
         }
     }
 

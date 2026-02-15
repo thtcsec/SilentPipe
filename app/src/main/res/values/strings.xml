@@ -73,6 +73,12 @@
     <!-- Navigation Drawer -->
     <string name="nav_find_sound">Find Sound</string>
     <string name="find_sound_hint">Tap to listen...</string>
+    <string name="find_sound_listening">Listening...</string>
+
+    <string name="find_sound_permission_denied">Permission Denied</string>
+    <string name="find_sound_permission_rational">Microphone permission required to find sounds</string>
+    <string name="find_sound_init_failed">Audio Record Init Failed</string>
+    <string name="find_sound_security_error">Security Exception: %s</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_privacy">Privacy Policy</string>
     <string name="nav_about">About</string>

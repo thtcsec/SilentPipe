@@ -74,6 +74,12 @@
     <!-- Navigation Drawer -->
     <string name="nav_find_sound">Tìm nhạc</string>
     <string name="find_sound_hint">Chạm để nghe...</string>
+    <string name="find_sound_listening">Đang nghe...</string>
+
+    <string name="find_sound_permission_denied">Quyền bị từ chối</string>
+    <string name="find_sound_permission_rational">Cần quyền Micro để tìm kiếm âm thanh</string>
+    <string name="find_sound_init_failed">Khởi tạo ghi âm thất bại</string>
+    <string name="find_sound_security_error">Lỗi bảo mật: %s</string>
     <string name="nav_settings">Cài đặt</string>
     <string name="nav_privacy">Chính sách bảo mật</string>
     <string name="nav_about">Thông tin</string>

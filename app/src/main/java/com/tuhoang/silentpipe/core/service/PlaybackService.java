@@ -43,7 +43,7 @@ public class PlaybackService extends MediaSessionService {
         
         // Initialize Audio Effects
         try {
-            audioEffectManager = new com.tuhoang.silentpipe.core.audio.AudioEffectManager(player.getAudioSessionId());
+            audioEffectManager = new com.tuhoang.silentpipe.core.audio.AudioEffectManager(this, player.getAudioSessionId());
         } catch (Exception e) {
             android.util.Log.e("PlaybackService", "Failed to init AudioFX", e);
         }

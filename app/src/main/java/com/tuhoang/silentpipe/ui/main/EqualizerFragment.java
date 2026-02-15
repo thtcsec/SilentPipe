@@ -128,11 +128,16 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
         View btnMaximize = getView().findViewById(R.id.btn_eq_maximize);
         if (btnMaximize != null) {
             btnMaximize.setOnClickListener(v -> {
-                dismiss(); // Limit screen clutter
-                // Navigate in main Activity's host
-                androidx.navigation.NavController navController = 
-                    androidx.navigation.Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-                navController.navigate(R.id.navigation_advanced_eq);
+                try {
+                    // Navigate only if the host has the nav controller (e.g. MainActivity)
+                    androidx.navigation.NavController navController = 
+                        androidx.navigation.Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+                    navController.navigate(R.id.navigation_advanced_eq);
+                    dismiss();
+                } catch (Exception e) {
+                     // We are likely in SettingsActivity or somewhere else without the main nav host
+                     android.widget.Toast.makeText(getContext(), "Open Player to access Advanced EQ", android.widget.Toast.LENGTH_SHORT).show();
+                }
             });
         }
     }

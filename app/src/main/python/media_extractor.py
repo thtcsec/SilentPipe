@@ -14,8 +14,11 @@ def extract_info(url, prefer_hq=False):
         return {"error": f"Lỗi khởi động Python (Import Error):\n{IMPORT_ERROR}"}
 
     # Based on old working version (simple is better)
+    # HQ Logic: 'bestaudio/best' vs 'worst[ext=m4a]/worst' (Data Saver)
+    format_selection = 'bestaudio/best' if prefer_hq else 'worst[ext=m4a]/worst'
+    
     ydl_opts = {
-        'format': 'bestaudio/best',
+        'format': format_selection,
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
