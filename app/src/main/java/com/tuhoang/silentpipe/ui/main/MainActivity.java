@@ -492,8 +492,9 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 
                 android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
                 boolean preferHq = prefs.getBoolean("pref_hq_audio", false);
+                String cookies = prefs.getString("pref_youtube_cookies", "");
                 
-                PyObject result = module.callAttr("extract_info", url, preferHq);
+                PyObject result = module.callAttr("extract_info", url, preferHq, cookies);
 
                 if (result == null) {
                     runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_player, "No response"), Toast.LENGTH_LONG).show());
@@ -539,10 +540,14 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                                 if (tvTitle != null) tvTitle.setText(finalTitle);
 
                                 // Update Now Playing Floating Text
+                                View cardNowPlaying = findViewById(R.id.card_now_playing);
                                 android.widget.TextView tvNowPlaying = findViewById(R.id.tv_now_playing);
                                 if (tvNowPlaying != null) {
                                     tvNowPlaying.setText(finalTitle);
                                     tvNowPlaying.setSelected(true);
+                                    if (cardNowPlaying != null && findViewById(R.id.fab_restore).getVisibility() == View.VISIBLE) {
+                                        cardNowPlaying.setVisibility(View.VISIBLE);
+                                    }
                                 }
                                 
                                 android.widget.TextView tvSource = playerView.findViewById(R.id.tv_source_info);

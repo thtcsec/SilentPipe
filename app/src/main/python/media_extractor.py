@@ -8,7 +8,7 @@ try:
 except Exception:
     IMPORT_ERROR = traceback.format_exc()
 
-def extract_info(url, prefer_hq=False):
+def extract_info(url, prefer_hq=False, cookie_str=None):
     # If import failed, return the error immediately
     if IMPORT_ERROR:
         return {"error": f"Lỗi khởi động Python (Import Error):\n{IMPORT_ERROR}"}
@@ -23,110 +23,124 @@ def extract_info(url, prefer_hq=False):
         'quiet': True,
         'no_warnings': True,
         'extract_flat': False,
-        # TikTok often requires a User-Agent to avoid 403 or redirect to login
         'http_headers': {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1',
         },
     }
+
+    # Cookie support: Write string to temp file if provided
+    cookie_temp_path = None
+    if cookie_str and len(cookie_str.strip()) > 20: # Crude check for valid-ish content
+        import tempfile
+        import os
+        try:
+            # Create a secure temp file for cookies
+            fd, cookie_temp_path = tempfile.mkstemp(suffix=".txt", prefix="cookies_")
+            with os.fdopen(fd, 'w') as f:
+                f.write(cookie_str)
+            ydl_opts['cookiefile'] = cookie_temp_path
+        except Exception as ce:
+            print(f"Error creating cookie file: {ce}")
+
     
     # Spotify Support REMOVED as requested by user to isolate TikTok issues.
     # Logic is now purely yt-dlp + TikTok fallback.
 
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            
-            # Try to get URL from top level or formats
-            stream_url = info.get("url")
-            if not stream_url:
-                formats = info.get("formats", [])
-                # Simple filter for best audio if 'url' not at top
-                audio_formats = [f for f in formats if f.get('acodec') != 'none' and f.get('vcodec') == 'none']
-                if audio_formats:
-                    # Get the last one (usually highest quality)
-                    stream_url = audio_formats[-1].get('url')
-                elif formats:
-                     stream_url = formats[-1].get('url')
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                
+                # ... Result processing ...
+                stream_url = info.get("url")
+                if not stream_url:
+                    formats = info.get("formats", [])
+                    audio_formats = [f for f in formats if f.get('acodec') != 'none' and f.get('vcodec') == 'none']
+                    if audio_formats:
+                        stream_url = audio_formats[-1].get('url')
+                    elif formats:
+                         stream_url = formats[-1].get('url')
 
-            if not stream_url:
-                return {"error": "Không tìm thấy link media (No URL found)"}
+                if not stream_url:
+                    return {"error": "Không tìm thấy link media (No URL found)"}
 
-            # Add simple source info
-            source_info = "Source: YouTube"
-            if "tiktok.com" in url or "tiktok" in info.get("extractor", "").lower():
-                source_info = "Source: TikTok"
+                source_info = "Source: YouTube"
+                if "tiktok.com" in url or "tiktok" in info.get("extractor", "").lower():
+                    source_info = "Source: TikTok"
 
-            return {
-                "title": info.get("title", "Unknown Title"),
-                "duration": info.get("duration", 0),
-                "thumbnail": info.get("thumbnail", ""),
-                "url": stream_url,
-                "uploader": info.get("uploader", "Unknown"),
-                "view_count": info.get("view_count", 0),
-                "source_info": source_info
-            }
-    except Exception as e:
-        error_msg = str(e)
-        
-        # Fallback for TikTok Music (yt-dlp 'Unsupported URL')
-        if "tiktok.com" in url:
-            try:
-                import urllib.request
-                import re
-                import json
-                import ssl
-
-                # Android often has issues with SSL certs in embedded Python, bypass it for scraping
-                ctx = ssl.create_default_context()
-                ctx.check_hostname = False
-                ctx.verify_mode = ssl.CERT_NONE
-
-                # TikTok requires User-Agent
-                headers = {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                    'Referer': 'https://www.tiktok.com/'
+                return {
+                    "title": info.get("title", "Unknown Title"),
+                    "duration": info.get("duration", 0),
+                    "thumbnail": info.get("thumbnail", ""),
+                    "url": stream_url,
+                    "uploader": info.get("uploader", "Unknown"),
+                    "view_count": info.get("view_count", 0),
+                    "source_info": source_info
                 }
-                req = urllib.request.Request(url, headers=headers)
-                with urllib.request.urlopen(req, context=ctx) as response:
-                    html = response.read().decode('utf-8')
+        except Exception as e:
+            error_msg = str(e)
+            
+            # Fallback for TikTok Music (yt-dlp 'Unsupported URL')
+            if "tiktok.com" in url:
+                try:
+                    import urllib.request
+                    import re
+                    import json
+                    import ssl
 
-                # Strategy 1: Look for "playUrl" in deeply nested JSON (SIGI_STATE or __UNIVERSAL_DATA...)
-                # Matches: "playUrl":"https://..."
-                # NOTE: URLs in JSON are often escaped like https:\\u002F\\u002F...
-                matches = re.findall(r'"playUrl":"(.*?)"', html)
-                
-                audio_url = None
-                for match in matches:
-                    # Clean up standard JSON escaping
-                    cleaned = match.encode().decode('unicode_escape').replace(r'\/', '/')
-                    if cleaned.startswith('http') and len(cleaned) > 10:
-                        audio_url = cleaned
-                        break
-                
-                if not audio_url:
-                     # Strategy 2: Look immediately for mp3/m4a inside quotes
-                     # This is looser but might catch direct source tags
-                     media_matches = re.findall(r'"(https?://[^"]+?\.(?:mp3|m4a|aac).*?)"', html)
-                     if media_matches:
-                         audio_url = media_matches[0].encode().decode('unicode_escape').replace(r'\/', '/')
-                         
-                if audio_url:
-                     title_match = re.search(r'<title>(.*?)</title>', html)
-                     title = title_match.group(1).replace(" | TikTok", "") if title_match else "TikTok Music"
-                     
-                     return {
-                        "title": title,
-                        "duration": 0,
-                        "thumbnail": "",
-                        "url": audio_url,
-                        "uploader": "TikTok Music",
-                        "view_count": 0,
-                        "source_info": "Source: TikTok (Fallback)"
+                    # Android often has issues with SSL certs in embedded Python, bypass it for scraping
+                    ctx = ssl.create_default_context()
+                    ctx.check_hostname = False
+                    ctx.verify_mode = ssl.CERT_NONE
+
+                    # TikTok requires User-Agent
+                    headers = {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'Referer': 'https://www.tiktok.com/'
                     }
-                else:
-                     return {"error": "Không thể lấy link nhạc từ trang này (Parse Error)."}
-            except Exception as fallback_e:
-                 return {"error": f"Lỗi lấy nhạc TikTok (Fallback Error):\n{str(fallback_e)}"}
-        
-        # Capture full traceback for debugging separate from TikTok fallback
-        return {"error": f"Lỗi xử lý (Extraction Error):\n{error_msg}\n\n{traceback.format_exc()}"}
+                    req = urllib.request.Request(url, headers=headers)
+                    with urllib.request.urlopen(req, context=ctx) as response:
+                        html = response.read().decode('utf-8')
+
+                    # Strategy 1: Look for "playUrl" in deeply nested JSON (SIGI_STATE or __UNIVERSAL_DATA...)
+                    matches = re.findall(r'"playUrl":"(.*?)"', html)
+                    
+                    audio_url = None
+                    for match in matches:
+                        cleaned = match.encode().decode('unicode_escape').replace(r'\/', '/')
+                        if cleaned.startswith('http') and len(cleaned) > 10:
+                            audio_url = cleaned
+                            break
+                    
+                    if not audio_url:
+                         # Strategy 2: Look immediately for mp3/m4a inside quotes
+                         media_matches = re.findall(r'"(https?://[^"]+?\.(?:mp3|m4a|aac).*?)"', html)
+                         if media_matches:
+                             audio_url = media_matches[0].encode().decode('unicode_escape').replace(r'\/', '/')
+                             
+                    if audio_url:
+                         title_match = re.search(r'<title>(.*?)</title>', html)
+                         title = title_match.group(1).replace(" | TikTok", "") if title_match else "TikTok Music"
+                         
+                         return {
+                            "title": title,
+                            "duration": 0,
+                            "thumbnail": "",
+                            "url": audio_url,
+                            "uploader": "TikTok Music",
+                            "view_count": 0,
+                            "source_info": "Source: TikTok (Fallback)"
+                        }
+                    else:
+                         return {"error": "Không thể lấy link nhạc từ trang này (Parse Error)."}
+                except Exception as fallback_e:
+                     return {"error": f"Lỗi lấy nhạc TikTok (Fallback Error):\n{str(fallback_e)}"}
+            
+            # Capture full traceback for debugging separate from TikTok fallback
+            return {"error": f"Lỗi xử lý (Extraction Error):\n{error_msg}\n\n{traceback.format_exc()}"}
+    finally:
+        if cookie_temp_path and os.path.exists(cookie_temp_path):
+            try:
+                os.remove(cookie_temp_path)
+            except:
+                pass

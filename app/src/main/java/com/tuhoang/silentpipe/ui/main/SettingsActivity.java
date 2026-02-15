@@ -49,6 +49,7 @@ public class SettingsActivity extends AppCompatActivity {
         setupPermissions();
         setupThemeAndLanguage();
         setupDataManagement();
+        setupCookieManagement();
         setupShortcuts();
         setupAudioSettings();
         setupAbout();
@@ -325,6 +326,44 @@ public class SettingsActivity extends AppCompatActivity {
 
 
     // Service Binding ...
+
+    private void setupCookieManagement() {
+        View btnCookies = findViewById(R.id.btn_youtube_cookies);
+        TextView tvStatus = findViewById(R.id.tv_cookies_status);
+        if (btnCookies == null || tvStatus == null) return;
+
+        String currentCookies = prefs.getString("pref_youtube_cookies", "");
+        if (!currentCookies.isEmpty()) {
+            tvStatus.setText("Cookies are set");
+        }
+
+        btnCookies.setOnClickListener(v -> {
+            EditText input = new EditText(this);
+            input.setHint("Paste Netscape-format cookies here...");
+            input.setText(prefs.getString("pref_youtube_cookies", ""));
+            input.setGravity(android.view.Gravity.TOP);
+            input.setLines(10);
+            input.setVerticalScrollBarEnabled(true);
+
+            new AlertDialog.Builder(this)
+                .setTitle("YouTube Cookies")
+                .setMessage("Paste your exported Netscape cookies to bypass bot detection.")
+                .setView(input)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String cookies = input.getText().toString();
+                    prefs.edit().putString("pref_youtube_cookies", cookies).apply();
+                    tvStatus.setText(cookies.isEmpty() ? "Not set" : "Cookies are set");
+                    Toast.makeText(this, "Cookies saved", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Clear", (dialog, which) -> {
+                    prefs.edit().remove("pref_youtube_cookies").apply();
+                    tvStatus.setText("Not set");
+                    Toast.makeText(this, "Cookies cleared", Toast.LENGTH_SHORT).show();
+                })
+                .setNeutralButton("Cancel", null)
+                .show();
+        });
+    }
 
     private void setupAbout() {
         try {
