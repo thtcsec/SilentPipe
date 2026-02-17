@@ -48,6 +48,10 @@ public class AudioEffectManager {
         }
     }
 
+    public int getAudioSessionId() {
+        return audioSessionId;
+    }
+
     private void initEffects() {
         try {
             equalizer = new Equalizer(0, audioSessionId);

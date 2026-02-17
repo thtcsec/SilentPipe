@@ -132,6 +132,24 @@ public class SettingsActivity extends AppCompatActivity {
                 prefs.edit().putBoolean("pref_use_bottom_player", isChecked).apply();
             });
         }
+        
+        // Video Mode
+        SwitchMaterial switchVideo = findViewById(R.id.switch_show_video);
+        if (switchVideo != null) {
+            switchVideo.setChecked(prefs.getBoolean("pref_show_video", false));
+            switchVideo.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                prefs.edit().putBoolean("pref_show_video", isChecked).apply();
+            });
+        }
+
+        // Visualizer
+        SwitchMaterial switchVisualizer = findViewById(R.id.switch_show_visualizer);
+        if (switchVisualizer != null) {
+            switchVisualizer.setChecked(prefs.getBoolean("pref_show_visualizer", false));
+            switchVisualizer.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                prefs.edit().putBoolean("pref_show_visualizer", isChecked).apply();
+            });
+        }
     }
     private void openAppSettings() {
         Intent intent = new Intent(
@@ -205,6 +223,63 @@ public class SettingsActivity extends AppCompatActivity {
             Toast.makeText(this, getString(R.string.cache_cleaned, formattedSize), Toast.LENGTH_SHORT).show();
             updateCacheSize();
         });
+            updateCacheSize();
+        });
+        
+        setupCheckUpdate();
+    }
+    
+    private void setupCheckUpdate() {
+        View btnUpdate = findViewById(R.id.btn_check_update);
+        if (btnUpdate != null) {
+            btnUpdate.setOnClickListener(v -> checkForUpdate());
+        }
+    }
+
+    private void checkForUpdate() {
+        Toast.makeText(this, "Checking for updates...", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            try {
+                java.net.URL url = new java.net.URL("https://api.github.com/repos/thtcsec/SilentPipe/releases/latest");
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("User-Agent", "SilentPipe-Android");
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) response.append(line);
+                    reader.close();
+                    
+                    org.json.JSONObject json = new org.json.JSONObject(response.toString());
+                    String latestTag = json.getString("tag_name");
+                    String currentTag = com.tuhoang.silentpipe.BuildConfig.VERSION_NAME;
+                    
+                    runOnUiThread(() -> {
+                        if (!latestTag.equals(currentTag)) {
+                            new AlertDialog.Builder(this)
+                                .setTitle("Update Available")
+                                .setMessage("New version " + latestTag + " is available. You are on " + currentTag + ".")
+                                .setPositiveButton("Download", (d, w) -> {
+                                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(json.optString("html_url")));
+                                    startActivity(browserIntent);
+                                })
+                                .setNegativeButton("Cancel", null)
+                                .show();
+                        } else {
+                            Toast.makeText(this, "You are up to date (" + currentTag + ")", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                     runOnUiThread(() -> Toast.makeText(this, "Update check failed: Code " + responseCode, Toast.LENGTH_SHORT).show());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(this, "Error checking updates", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
     }
 
     private boolean deleteDir(File dir) {

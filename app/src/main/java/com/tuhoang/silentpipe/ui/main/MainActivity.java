@@ -99,6 +99,15 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         downloadHelper = new DownloadHelper(this);
         navigationHelper = new NavigationHelper(this);
 
+        visualizerView = findViewById(R.id.visualizer_view);
+        
+        // Permissions for Visualizer
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, 102);
+            }
+        }
+
         // Setup Buttons
         setupButtons();
 
@@ -416,8 +425,44 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                          updateBottomPlayerUI(); // Sync bottom player
                      }
                  }
+
+                 // Fix: Only auto-show (Mini Player) if playing and nothing is visible.
+                     // Do NOT force maximized player (togglePlayer(true)) on resume.
+                 boolean isFullPlayerVisible = playerView.getVisibility() == View.VISIBLE;
+                 View bottomPlayer = findViewById(R.id.layout_bottom_player);
+                 boolean isBottomPlayerVisible = bottomPlayer != null && bottomPlayer.getVisibility() == View.VISIBLE;
+                 View fabRestore = findViewById(R.id.fab_restore);
+                 boolean isFabVisible = fabRestore != null && fabRestore.getVisibility() == View.VISIBLE;
                  
-                 togglePlayer(true);
+                 if (!isFullPlayerVisible && !isBottomPlayerVisible && !isFabVisible) {
+                     if (mediaController.isPlaying()) {
+                         togglePlayer(false); // Default to Mini Player if playing and hidden
+                     }
+                 }
+
+                 // Setup Visualizer
+                 android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
+                 boolean showVisualizer = prefs.getBoolean("pref_show_visualizer", false);
+                 boolean showVideo = prefs.getBoolean("pref_show_video", false);
+                 
+                 if (showVisualizer && !showVideo && mediaController.isPlaying()) {
+                     if (visualizerView != null) {
+                          visualizerView.setVisibility(View.VISIBLE);
+                          PlaybackService service = PlaybackService.instance;
+                          if (service != null && service.getAudioEffectManager() != null) {
+                              int sessionId = service.getAudioEffectManager().getAudioSessionId();
+                              if (sessionId != 0) {
+                                  try {
+                                      visualizerView.link(sessionId);
+                                  } catch (Exception e) {
+                                      android.util.Log.e(TAG, "Failed to link visualizer", e);
+                                  }
+                              }
+                          }
+                     }
+                 } else {
+                     if (visualizerView != null) visualizerView.setVisibility(View.GONE);
+                 }
             }
 
         }, MoreExecutors.directExecutor());
@@ -541,9 +586,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     public void showEqualizer() {
         PlaybackService service = PlaybackService.instance;
         if (service != null) {
-            com.tuhoang.silentpipe.ui.main.EqualizerFragment eqFragment = new com.tuhoang.silentpipe.ui.main.EqualizerFragment();
-            eqFragment.setPlaybackService(service);
-            eqFragment.show(getSupportFragmentManager(), "Equalizer");
+            com.tuhoang.silentpipe.ui.main.AdvancedEqActivity.start(this);
         } else {
             Toast.makeText(this, "Service not ready. Play something first!", Toast.LENGTH_SHORT).show();
         }
@@ -563,9 +606,10 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 
                 android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
                 boolean preferHq = prefs.getBoolean("pref_hq_audio", false);
+                boolean showVideo = prefs.getBoolean("pref_show_video", false);
                 String cookies = prefs.getString("pref_youtube_cookies", "");
                 
-                PyObject result = module.callAttr("extract_info", url, preferHq, cookies);
+                PyObject result = module.callAttr("extract_info", url, preferHq, cookies, showVideo);
 
                 if (result == null) {
                     runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_player, "No response"), Toast.LENGTH_LONG).show());

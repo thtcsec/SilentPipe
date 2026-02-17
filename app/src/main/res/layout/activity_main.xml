@@ -64,6 +64,17 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/appbar_layout" />
+            
+        <com.tuhoang.silentpipe.ui.view.VisualizerView
+            android:id="@+id/visualizer_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:visibility="gone"
+            android:elevation="4dp"
+            app:layout_constraintBottom_toTopOf="@id/bottom_nav"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/appbar_layout" />
 
         <!-- Bottom Mini Player (Alternative Style) -->
         <androidx.constraintlayout.widget.ConstraintLayout

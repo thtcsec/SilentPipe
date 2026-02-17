@@ -8,14 +8,17 @@ try:
 except Exception:
     IMPORT_ERROR = traceback.format_exc()
 
-def extract_info(url, prefer_hq=False, cookie_str=None):
+def extract_info(url, prefer_hq=False, cookie_str=None, show_video=False):
     # If import failed, return the error immediately
     if IMPORT_ERROR:
         return {"error": f"Lỗi khởi động Python (Import Error):\n{IMPORT_ERROR}"}
 
     # Based on old working version (simple is better)
     # HQ Logic: 'bestaudio/best' vs 'worst[ext=m4a]/worst' (Data Saver)
-    format_selection = 'bestaudio/best' if prefer_hq else 'worst[ext=m4a]/worst'
+    if show_video:
+        format_selection = 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
+    else:
+        format_selection = 'bestaudio/best' if prefer_hq else 'worst[ext=m4a]/worst'
     
     ydl_opts = {
         'format': format_selection,

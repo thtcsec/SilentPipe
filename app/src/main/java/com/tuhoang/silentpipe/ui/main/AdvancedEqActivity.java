@@ -1,9 +1,10 @@
 package com.tuhoang.silentpipe.ui.main;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
@@ -12,11 +13,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.tuhoang.silentpipe.R;
@@ -25,7 +23,7 @@ import com.tuhoang.silentpipe.core.service.PlaybackService;
 
 import java.util.List;
 
-public class AdvancedEqualizerFragment extends Fragment {
+public class AdvancedEqActivity extends AppCompatActivity {
 
     private LinearLayout bandsContainer;
     private SwitchMaterial switchEnable;
@@ -33,23 +31,25 @@ public class AdvancedEqualizerFragment extends Fragment {
     private Spinner spinnerPresets;
     private View btnBack;
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_advanced_equalizer, container, false);
+    public static void start(Context context) {
+        Intent starter = new Intent(context, AdvancedEqActivity.class);
+        context.startActivity(starter);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.fragment_advanced_equalizer); // Reusing the layout
 
-        bandsContainer = view.findViewById(R.id.layout_bands_container);
-        switchEnable = view.findViewById(R.id.switch_eq_enable);
-        seekBassBoost = view.findViewById(R.id.seek_bass_boost);
-        spinnerPresets = view.findViewById(R.id.spinner_presets);
-        btnBack = view.findViewById(R.id.btn_back);
+        bandsContainer = findViewById(R.id.layout_bands_container);
+        switchEnable = findViewById(R.id.switch_eq_enable);
+        seekBassBoost = findViewById(R.id.seek_bass_boost);
+        spinnerPresets = findViewById(R.id.spinner_presets);
+        btnBack = findViewById(R.id.btn_back);
 
-        btnBack.setOnClickListener(v -> Navigation.findNavController(view).navigateUp());
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
 
         setupEqualizerUI();
     }
@@ -57,12 +57,16 @@ public class AdvancedEqualizerFragment extends Fragment {
     private void setupEqualizerUI() {
         PlaybackService service = PlaybackService.instance;
         if (service == null) {
-            Toast.makeText(getContext(), "Service not bound", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Service not bound / Player not running", Toast.LENGTH_SHORT).show();
+            // Optional: bind service here if strictly needed, but usually Player is running when accessing EQ
             return;
         }
 
         AudioEffectManager audioManager = service.getAudioEffectManager();
-        if (audioManager == null) return;
+        if (audioManager == null) {
+             Toast.makeText(this, "Audio Effect Manager unavailable", Toast.LENGTH_SHORT).show();
+             return;
+        }
 
         // Switch
         switchEnable.setChecked(audioManager.isEnabled());
@@ -81,7 +85,7 @@ public class AdvancedEqualizerFragment extends Fragment {
 
         // Presets
         List<String> presets = audioManager.getPresetNames();
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, presets);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, presets);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerPresets.setAdapter(adapter);
 
@@ -125,13 +129,13 @@ public class AdvancedEqualizerFragment extends Fragment {
 
         for (short i = 0; i < bands; i++) {
             final short bandIndex = i;
-            View bandView = LayoutInflater.from(getContext()).inflate(R.layout.item_eq_band, bandsContainer, false);
+            View bandView = LayoutInflater.from(this).inflate(R.layout.item_eq_band, bandsContainer, false);
             
             TextView textFreq = bandView.findViewById(R.id.text_frequency);
             TextView textLevel = bandView.findViewById(R.id.text_level);
             SeekBar seekLevel = bandView.findViewById(R.id.seek_bar_level);
 
-            // Make text white for this dark fragment
+            // Make text white for this dark fragment/activity
             textFreq.setTextColor(getResources().getColor(android.R.color.white, null));
             textLevel.setTextColor(getResources().getColor(android.R.color.darker_gray, null));
 

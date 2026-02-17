@@ -72,6 +72,12 @@
             android:parentActivityName="com.tuhoang.silentpipe.ui.main.MainActivity"
             android:exported="false"
             android:theme="@style/Theme.SilentPipe" />
+        
+        <activity
+            android:name=".ui.main.AdvancedEqActivity"
+            android:label="Advanced Equalizer"
+            android:theme="@style/Theme.SilentPipe"
+            android:screenOrientation="portrait" />
 
         <service
             android:name="com.tuhoang.silentpipe.core.service.PlaybackService"
