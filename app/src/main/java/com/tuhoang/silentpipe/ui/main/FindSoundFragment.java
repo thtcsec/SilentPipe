@@ -33,7 +33,7 @@ public class FindSoundFragment extends Fragment {
     private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
 
     private AudioRecord audioRecord;
-    private boolean isListening = false;
+    private volatile boolean isListening = false;
     private Thread recordingThread;
     
     private View btnListen;
@@ -146,13 +146,14 @@ public class FindSoundFragment extends Fragment {
         if (!isListening) return;
         
         isListening = false;
+        // Do not join the thread on UI thread, let it finish naturally
+        recordingThread = null;
+
         try {
-            if (recordingThread != null) {
-                recordingThread.join();
-                recordingThread = null;
-            }
             if (audioRecord != null) {
-                audioRecord.stop();
+                if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
+                    audioRecord.stop();
+                }
                 audioRecord.release();
                 audioRecord = null;
             }

@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     private NavigationHelper navigationHelper;
 
     private boolean ignoreNextClipboardCheck = false;
+    private final java.util.concurrent.ExecutorService executorService = java.util.concurrent.Executors.newFixedThreadPool(4);
 
     @Override
     protected void onResume() {
@@ -280,10 +281,8 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
 
     private void toggleFavorite() {
         if (currentMediaItem != null) {
-             new Thread(() -> {
-                com.tuhoang.silentpipe.data.AppDatabase db = androidx.room.Room.databaseBuilder(
-                        getApplicationContext(),
-                        com.tuhoang.silentpipe.data.AppDatabase.class, "silentpipe-db").build();
+             executorService.execute(() -> {
+                com.tuhoang.silentpipe.data.AppDatabase db = com.tuhoang.silentpipe.data.AppDatabase.getDatabase(getApplicationContext());
                 
                 com.google.android.material.floatingactionbutton.FloatingActionButton fab = findViewById(R.id.fab_favorite);
                 boolean isFav = db.favoriteDao().isFavorite(currentMediaItem.url);
@@ -303,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                         Toast.makeText(this, getString(R.string.toast_fav_added), Toast.LENGTH_SHORT).show();
                     });
                 }
-            }).start();
+            });
         }
     }
     
@@ -366,6 +365,14 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         if (mediaController != null) {
             mediaController.release();
             mediaController = null;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (executorService != null) {
+            executorService.shutdown();
         }
     }
 
@@ -485,7 +492,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             playerView.setVisibility(View.VISIBLE);
             togglePlayer(true); 
         });
-        new Thread(() -> {
+        executorService.execute(() -> {
             try {
                 Python py = Python.getInstance();
                 PyObject module = py.getModule("media_extractor");
@@ -589,16 +596,14 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                                 );
                                 
                                 // Check status to update Icon
-                                new Thread(() -> {
-                                    com.tuhoang.silentpipe.data.AppDatabase db = androidx.room.Room.databaseBuilder(
-                                            getApplicationContext(),
-                                            com.tuhoang.silentpipe.data.AppDatabase.class, "silentpipe-db").build();
+                                executorService.execute(() -> {
+                                    com.tuhoang.silentpipe.data.AppDatabase db = com.tuhoang.silentpipe.data.AppDatabase.getDatabase(getApplicationContext());
                                     boolean isFav = db.favoriteDao().isFavorite(url);
                                     runOnUiThread(() -> {
                                         com.google.android.material.floatingactionbutton.FloatingActionButton fab = findViewById(R.id.fab_favorite);
                                         fab.setImageResource(isFav ? android.R.drawable.btn_star_big_on : android.R.drawable.btn_star_big_off);
                                     });
-                                }).start();
+                                });
                                 
                             } catch (Exception e) {
                                 Toast.makeText(this, getString(R.string.toast_error_player, e.getMessage()), Toast.LENGTH_LONG).show();
@@ -616,6 +621,6 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 android.util.Log.e("MainActivity", "Critical Error in loadVideo", e);
                 runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, e.getMessage()), Toast.LENGTH_LONG).show());
             }
-        }).start();
+        });
     }
 }
