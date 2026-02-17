@@ -123,6 +123,15 @@ public class SettingsActivity extends AppCompatActivity {
 
         android.view.View btnLanguage = findViewById(R.id.btn_language);
         btnLanguage.setOnClickListener(v -> showLanguageDialog());
+
+        // Mini Player Style
+        SwitchMaterial switchBottomPlayer = findViewById(R.id.switch_bottom_player);
+        if (switchBottomPlayer != null) {
+            switchBottomPlayer.setChecked(prefs.getBoolean("pref_use_bottom_player", false));
+            switchBottomPlayer.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                prefs.edit().putBoolean("pref_use_bottom_player", isChecked).apply();
+            });
+        }
     }
     private void openAppSettings() {
         Intent intent = new Intent(

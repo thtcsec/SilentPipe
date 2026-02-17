@@ -135,6 +135,37 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         findViewById(R.id.fab_minimize).setOnClickListener(v -> togglePlayer(false));
         findViewById(R.id.fab_restore).setOnClickListener(v -> togglePlayer(true));
 
+        // Bottom Player Buttons
+        findViewById(R.id.layout_bottom_player).setOnClickListener(v -> togglePlayer(true));
+        findViewById(R.id.btn_bottom_player_close).setOnClickListener(v -> {
+            togglePlayer(true); // First restore to stop? Or just stop?
+            // User likely wants to stop playback and close player.
+            if (mediaController != null) mediaController.pause(); // Or stop()
+             findViewById(R.id.layout_bottom_player).setVisibility(View.GONE);
+             findViewById(R.id.fab_restore).setVisibility(View.VISIBLE); // Reset to default state? 
+             // Actually, if we close, we probably want to hide everything.
+             togglePlayer(false); // Ensure minimized
+             findViewById(R.id.layout_bottom_player).setVisibility(View.GONE);
+             findViewById(R.id.fab_restore).setVisibility(View.VISIBLE); // Show floating button as fallback?
+             // Better: just hide bottom player and show floating button, or stop completely?
+             // Let's just pause and hide bottom player, reverting to floating button state effectively "minimized but paused".
+             // Or maybe "Close" means "Exit Player". 
+             // Let's go with: Pause and Switch to Floating Button (Paused state).
+             if (mediaController != null) mediaController.pause();
+             togglePlayer(false); // This will re-evaluate prefs. 
+             // If pref is Bottom Player, it will show Bottom Player again.
+             // We need a way to say "Hidden". 
+             // Let's just Pause.
+        });
+        
+        findViewById(R.id.btn_bottom_player_play).setOnClickListener(v -> {
+            if (mediaController != null) {
+                if (mediaController.isPlaying()) mediaController.pause();
+                else mediaController.play();
+                updateBottomPlayerUI();
+            }
+        });
+
         makeDraggable(findViewById(R.id.fab_stack));
     }
 
@@ -212,10 +243,15 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         View restoreBtn = findViewById(R.id.fab_restore);
         View nowPlayingCard = findViewById(R.id.card_now_playing);
         android.widget.TextView tvNowPlaying = findViewById(R.id.tv_now_playing);
+        
+        View bottomPlayer = findViewById(R.id.layout_bottom_player);
+        android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
+        boolean useBottomPlayer = prefs.getBoolean("pref_use_bottom_player", false);
 
         if (show) {
             restoreBtn.setVisibility(View.GONE);
             if (nowPlayingCard != null) nowPlayingCard.setVisibility(View.GONE);
+            if (bottomPlayer != null) bottomPlayer.setVisibility(View.GONE);
             
             playerView.setVisibility(View.VISIBLE);
             playerView.animate().alpha(1f).setDuration(200).start();
@@ -223,14 +259,41 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         } else {
             playerView.animate().alpha(0f).setDuration(200).withEndAction(() -> playerView.setVisibility(View.GONE)).start();
             for (View view : fabChildren) view.setVisibility(View.GONE);
-            restoreBtn.setVisibility(View.VISIBLE);
             
-            if (nowPlayingCard != null && currentMediaItem != null) {
-                nowPlayingCard.setVisibility(View.VISIBLE);
-                if (tvNowPlaying != null) {
-                    tvNowPlaying.setSelected(true); // Trigger marquee
+            if (useBottomPlayer) {
+                restoreBtn.setVisibility(View.GONE);
+                if (nowPlayingCard != null) nowPlayingCard.setVisibility(View.GONE);
+                
+                if (bottomPlayer != null) {
+                    bottomPlayer.setVisibility(View.VISIBLE);
+                    updateBottomPlayerUI();
+                }
+            } else {
+                if (bottomPlayer != null) bottomPlayer.setVisibility(View.GONE);
+                restoreBtn.setVisibility(View.VISIBLE);
+                
+                if (nowPlayingCard != null && currentMediaItem != null) {
+                    nowPlayingCard.setVisibility(View.VISIBLE);
+                    if (tvNowPlaying != null) {
+                        tvNowPlaying.setSelected(true); // Trigger marquee
+                    }
                 }
             }
+        }
+    }
+
+    private void updateBottomPlayerUI() {
+        if (currentMediaItem == null) return;
+        
+        android.widget.TextView tvTitle = findViewById(R.id.tv_bottom_player_title);
+        if (tvTitle != null) {
+            tvTitle.setText(currentMediaItem.title);
+            tvTitle.setSelected(true);
+        }
+        
+        android.widget.ImageButton btnPlay = findViewById(R.id.btn_bottom_player_play);
+        if (btnPlay != null && mediaController != null) {
+            btnPlay.setImageResource(mediaController.isPlaying() ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play);
         }
     }
 
@@ -350,6 +413,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                              tvNowPlaying.setText(title);
                              tvNowPlaying.setSelected(true);
                          }
+                         updateBottomPlayerUI(); // Sync bottom player
                      }
                  }
                  
@@ -547,6 +611,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                                 if (tvTitle != null) tvTitle.setText(finalTitle);
 
                                 // Update Now Playing Floating Text
+                                // Update Now Playing Floating Text
                                 View cardNowPlaying = findViewById(R.id.card_now_playing);
                                 android.widget.TextView tvNowPlaying = findViewById(R.id.tv_now_playing);
                                 if (tvNowPlaying != null) {
@@ -556,6 +621,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                                         cardNowPlaying.setVisibility(View.VISIBLE);
                                     }
                                 }
+                                updateBottomPlayerUI(); // Sync bottom player
                                 
                                 android.widget.TextView tvSource = playerView.findViewById(R.id.tv_source_info);
                                 if (tvSource != null) tvSource.setText(finalSourceInfo);

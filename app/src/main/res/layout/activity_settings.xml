@@ -91,6 +91,36 @@
 
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
 
+                    <!-- Mini Player Style -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_menu_slideshow"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Bottom Mini Player"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginStart="16dp"/>
+                        
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_bottom_player"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+
+
                     <!-- Language -->
                     <LinearLayout
                         android:id="@+id/btn_language"
