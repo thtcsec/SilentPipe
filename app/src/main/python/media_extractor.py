@@ -23,8 +23,10 @@ def extract_info(url, prefer_hq=False, cookie_str=None):
         'quiet': True,
         'no_warnings': True,
         'extract_flat': False,
+        'ignoreerrors': True,
         'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1',
+             # Use a modern iPhone User-Agent which often avoids captchas/blocks better than desktop
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
         },
     }
 
@@ -62,7 +64,8 @@ def extract_info(url, prefer_hq=False, cookie_str=None):
                          stream_url = formats[-1].get('url')
 
                 if not stream_url:
-                    return {"error": "Không tìm thấy link media (No URL found)"}
+                     # Force raise to trigger fallback if yt-dlp fails to get a URL
+                    raise Exception("No URL found by yt-dlp")
 
                 source_info = "Source: YouTube"
                 if "tiktok.com" in url or "tiktok" in info.get("extractor", "").lower():
@@ -80,7 +83,7 @@ def extract_info(url, prefer_hq=False, cookie_str=None):
         except Exception as e:
             error_msg = str(e)
             
-            # Fallback for TikTok Music (yt-dlp 'Unsupported URL')
+            # Fallback for TikTok Music (yt-dlp 'Unsupported URL' or blocked)
             if "tiktok.com" in url:
                 try:
                     import urllib.request
@@ -93,19 +96,19 @@ def extract_info(url, prefer_hq=False, cookie_str=None):
                     ctx.check_hostname = False
                     ctx.verify_mode = ssl.CERT_NONE
 
-                    # TikTok requires User-Agent
+                    # TikTok mobile UA
                     headers = {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
                         'Referer': 'https://www.tiktok.com/'
                     }
                     req = urllib.request.Request(url, headers=headers)
                     with urllib.request.urlopen(req, context=ctx) as response:
                         html = response.read().decode('utf-8')
 
-                    # Strategy 1: Look for "playUrl" in deeply nested JSON (SIGI_STATE or __UNIVERSAL_DATA...)
-                    matches = re.findall(r'"playUrl":"(.*?)"', html)
-                    
                     audio_url = None
+                    
+                    # Strategy 1: Look for "playUrl" in JSON structure
+                    matches = re.findall(r'"playUrl":"(.*?)"', html)
                     for match in matches:
                         cleaned = match.encode().decode('unicode_escape').replace(r'\/', '/')
                         if cleaned.startswith('http') and len(cleaned) > 10:
@@ -113,21 +116,55 @@ def extract_info(url, prefer_hq=False, cookie_str=None):
                             break
                     
                     if not audio_url:
-                         # Strategy 2: Look immediately for mp3/m4a inside quotes
+                         # Strategy 2: Look for direct audio mp3/m4a/aac inside quotes
                          media_matches = re.findall(r'"(https?://[^"]+?\.(?:mp3|m4a|aac).*?)"', html)
                          if media_matches:
                              audio_url = media_matches[0].encode().decode('unicode_escape').replace(r'\/', '/')
                              
+                    if not audio_url:
+                        # Strategy 3: Check helper nextjs script tag often found in mobile view
+                        json_match = re.search(r'<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">(.*?)</script>', html)
+                        if json_match:
+                            try:
+                                data = json.loads(json_match.group(1))
+                                # Traverse potentially nested dict for 'playUrl' or 'music'
+                                # This is generic traversal as structure changes often
+                                s_data = str(data)
+                                u_match = re.search(r"'playUrl':\s*'(.*?)'", s_data)
+                                if u_match:
+                                    audio_url = u_match.group(1)
+                            except:
+                                pass
+
                     if audio_url:
-                         title_match = re.search(r'<title>(.*?)</title>', html)
-                         title = title_match.group(1).replace(" | TikTok", "") if title_match else "TikTok Music"
+                         # Extract Title - PRIORITIZE Caption/Description over generic Title
+                         title = "TikTok Video"
                          
+                         # Try og:description first (usually contains the user caption)
+                         desc_match = re.search(r'<meta property="og:description" content="(.*?)"', html)
+                         if desc_match:
+                             desc = desc_match.group(1)
+                             # Cleanup "User (@user) on TikTok | Watch ..."
+                             if "on TikTok" not in desc and "Watch" not in desc:
+                                 title = desc
+                             else:
+                                 # Try to extract the part before " | " or just take it all if short
+                                 title = desc.split(" | ")[0]
+                         else:
+                             # Fallback to Title tag but clean it
+                             title_match = re.search(r'<title>(.*?)</title>', html)
+                             if title_match:
+                                 raw_title = title_match.group(1)
+                                 # Remove " | TikTok" suffix
+                                 title = raw_title.replace(" | TikTok", "").replace("TikTok - Make Your Day", "").strip()
+                                 if not title: title = "TikTok Video"
+
                          return {
                             "title": title,
                             "duration": 0,
                             "thumbnail": "",
                             "url": audio_url,
-                            "uploader": "TikTok Music",
+                            "uploader": "TikTok User",
                             "view_count": 0,
                             "source_info": "Source: TikTok (Fallback)"
                         }
