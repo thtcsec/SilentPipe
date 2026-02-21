@@ -20,6 +20,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
 
     public interface OnItemClickListener {
         void onItemClick(FavoriteItem item);
+        void onEditClick(FavoriteItem item);
         void onDeleteClick(FavoriteItem item);
     }
 
@@ -41,6 +42,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
         holder.textTitle.setText(item.title);
         holder.textUploader.setText(item.uploader);
         holder.itemView.setOnClickListener(v -> listener.onItemClick(item));
+        holder.btnEdit.setOnClickListener(v -> listener.onEditClick(item));
         holder.btnDelete.setOnClickListener(v -> listener.onDeleteClick(item));
     }
 
@@ -52,12 +54,14 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView textTitle;
         TextView textUploader;
+        android.widget.ImageButton btnEdit;
         android.widget.ImageButton btnDelete;
 
         ViewHolder(View itemView) {
             super(itemView);
             textTitle = itemView.findViewById(R.id.tv_title);
             textUploader = itemView.findViewById(R.id.tv_uploader);
+            btnEdit = itemView.findViewById(R.id.btn_edit);
             btnDelete = itemView.findViewById(R.id.btn_delete);
         }
     }

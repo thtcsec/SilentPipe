@@ -18,7 +18,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="SilentPipe"
+        android:text="@string/app_name"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textColor="?attr/colorOnPrimary"
         android:textSize="20sp"
@@ -27,7 +27,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Audio Streamer"
+        android:text="@string/nav_audio_streamer"
         android:textColor="?attr/colorOnPrimary"
         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
         android:textSize="14sp" />

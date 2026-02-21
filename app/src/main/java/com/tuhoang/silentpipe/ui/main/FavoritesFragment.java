@@ -39,9 +39,7 @@ public class FavoritesFragment extends Fragment {
 
     private void loadFavorites(View view) {
         new Thread(() -> {
-            AppDatabase db = Room.databaseBuilder(
-                    requireContext().getApplicationContext(),
-                    com.tuhoang.silentpipe.data.AppDatabase.class, "silentpipe-db").build();
+            AppDatabase db = AppDatabase.getDatabase(requireContext());
             
             List<FavoriteItem> items = db.favoriteDao().getAll();
             
@@ -62,15 +60,39 @@ public class FavoritesFragment extends Fragment {
                         }
 
                         @Override
+                        public void onEditClick(FavoriteItem item) {
+                            final android.widget.EditText input = new android.widget.EditText(requireContext());
+                            input.setText(item.title);
+                            // Add padding to input
+                            int pad = (int) (16 * getResources().getDisplayMetrics().density);
+                            input.setPadding(pad, pad, pad, pad);
+                            
+                            new android.app.AlertDialog.Builder(requireContext())
+                                .setTitle("Edit Title")
+                                .setView(input)
+                                .setPositiveButton("Save", (dialog, which) -> {
+                                    String newTitle = input.getText().toString().trim();
+                                    if (!newTitle.isEmpty()) {
+                                        item.title = newTitle;
+                                        new Thread(() -> {
+                                            AppDatabase db = AppDatabase.getDatabase(requireContext());
+                                            db.favoriteDao().update(item);
+                                            requireActivity().runOnUiThread(() -> loadFavorites(view));
+                                        }).start();
+                                    }
+                                })
+                                .setNegativeButton("Cancel", null)
+                                .show();
+                        }
+
+                        @Override
                         public void onDeleteClick(FavoriteItem item) {
                             new android.app.AlertDialog.Builder(requireContext())
                                 .setTitle("Delete Favorite")
                                 .setMessage("Are you sure you want to delete this item?")
                                 .setPositiveButton("Delete", (dialog, which) -> {
                                     new Thread(() -> {
-                                        AppDatabase db = Room.databaseBuilder(
-                                                requireContext().getApplicationContext(),
-                                                com.tuhoang.silentpipe.data.AppDatabase.class, "silentpipe-db").build();
+                                        AppDatabase db = AppDatabase.getDatabase(requireContext());
                                         db.favoriteDao().delete(item);
                                         requireActivity().runOnUiThread(() -> loadFavorites(view)); // Reload list
                                     }).start();

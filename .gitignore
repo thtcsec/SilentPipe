@@ -21,3 +21,5 @@ local.properties
 *.log
 build_trace.log
 build_fix.log
+build_output.txt
+build_log.txt

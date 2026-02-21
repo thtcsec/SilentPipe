@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    android:background="@color/background_light">
+    android:background="?attr/colorSurface">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -15,11 +15,10 @@
             android:id="@+id/settings_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
             app:layout_constraintTop_toTopOf="parent"
             app:navigationIcon="?attr/homeAsUpIndicator"
             app:title="@string/nav_settings"
-            app:titleTextColor="@color/white" />
+            app:titleTextColor="?attr/colorPrimary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -46,8 +45,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                style="?attr/materialCardViewFilledStyle"
                 android:layout_marginBottom="16dp">
 
                 <LinearLayout
@@ -77,19 +75,19 @@
                             android:layout_weight="1"
                             android:text="@string/pref_theme_default"
                             android:textSize="16sp"
-                            android:textColor="@color/text_primary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginStart="16dp"/>
 
                         <ImageView
                              android:layout_width="24dp"
                              android:layout_height="24dp"
                              android:src="@android:drawable/ic_media_play"
-                             app:tint="@color/text_secondary"
+                             app:tint="?attr/colorOnSurfaceVariant"
                              android:rotation="90" 
                              android:alpha="0.5"/>
                     </LinearLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
 
                     <!-- Mini Player Style -->
                     <LinearLayout
@@ -109,9 +107,9 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Bottom Mini Player"
+                            android:text="@string/pref_mini_player"
                             android:textSize="16sp"
-                            android:textColor="@color/text_primary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginStart="16dp"/>
                         
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -143,19 +141,19 @@
                             android:layout_weight="1"
                             android:text="@string/pref_language_en"
                             android:textSize="16sp"
-                            android:textColor="@color/text_primary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginStart="16dp"/>
                             
                         <ImageView
                              android:layout_width="24dp"
                              android:layout_height="24dp"
                              android:src="@android:drawable/ic_media_play"
-                             app:tint="@color/text_secondary"
+                             app:tint="?attr/colorOnSurfaceVariant"
                              android:rotation="90"
                              android:alpha="0.5"/>
                     </LinearLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
 
                     <!-- Show Video -->
                     <LinearLayout
@@ -175,9 +173,9 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Show Video (Experimental)"
+                            android:text="@string/pref_show_video_exp"
                             android:textSize="16sp"
-                            android:textColor="@color/text_primary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginStart="16dp"/>
                         
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -186,7 +184,7 @@
                             android:layout_height="wrap_content"/>
                     </LinearLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
 
                     <!-- Show Visualizer -->
                     <LinearLayout
@@ -206,9 +204,9 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Audio Visualizer"
+                            android:text="@string/pref_visualizer_label"
                             android:textSize="16sp"
-                            android:textColor="@color/text_primary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginStart="16dp"/>
                         
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -231,8 +229,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                style="?attr/materialCardViewFilledStyle"
                 android:layout_marginBottom="16dp">
 
                 <LinearLayout
@@ -262,13 +259,13 @@
                             android:layout_weight="1"
                             android:text="@string/pref_audio_equalizer"
                             android:textSize="16sp"
-                            android:textColor="@color/text_primary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginStart="16dp"/>
                         
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_media_play" app:tint="@color/text_secondary" android:rotation="90" android:alpha="0.5"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_media_play" app:tint="?attr/colorOnSurfaceVariant" android:rotation="90" android:alpha="0.5"/>
                     </LinearLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
 
                     <!-- HQ Audio Switch -->
                     <LinearLayout
@@ -290,7 +287,7 @@
                             android:layout_weight="1"
                             android:text="@string/pref_hq_audio"
                             android:textSize="16sp"
-                            android:textColor="@color/text_primary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginStart="16dp"/>
                         
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -299,7 +296,7 @@
                             android:layout_height="wrap_content"/>
                     </LinearLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
 
                      <!-- Skip Time -->
                     <LinearLayout
@@ -326,19 +323,19 @@
                              <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Skip Interval"
+                                android:text="@string/pref_skip_interval"
                                 android:textSize="16sp"
-                                android:textColor="@color/text_primary"/>
+                                android:textColor="?attr/colorOnSurface"/>
                              <TextView
                                 android:id="@+id/tv_skip_time_val"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="10s"
                                 android:textSize="14sp"
-                                android:textColor="@color/text_secondary"/>
+                                android:textColor="?attr/colorOnSurfaceVariant"/>
                         </LinearLayout>
                         
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_media_play" app:tint="@color/text_secondary" android:rotation="90" android:alpha="0.5"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_media_play" app:tint="?attr/colorOnSurfaceVariant" android:rotation="90" android:alpha="0.5"/>
                     </LinearLayout>
 
                 </LinearLayout>
@@ -356,8 +353,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                style="?attr/materialCardViewFilledStyle"
                 android:layout_marginBottom="16dp">
 
                 <LinearLayout
@@ -392,19 +388,19 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/pref_clean_cache"
                                 android:textSize="16sp"
-                                android:textColor="@color/text_primary"/>
+                                android:textColor="?attr/colorOnSurface"/>
                              <TextView
                                 android:id="@+id/tv_cache_size"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Calculating..."
+                                android:text="@string/pref_calculating"
                                 android:textSize="14sp"
-                                android:textColor="@color/text_secondary"/>
+                                android:textColor="?attr/colorOnSurfaceVariant"/>
                         </LinearLayout>
                         <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_delete" app:tint="?attr/colorAccent"/>
                     </LinearLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
 
                     <!-- YouTube Cookies -->
                     <LinearLayout
@@ -431,18 +427,18 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="YouTube Cookies"
+                                android:text="@string/pref_yt_cookies"
                                 android:textSize="16sp"
-                                android:textColor="@color/text_primary"/>
+                                android:textColor="?attr/colorOnSurface"/>
                             <TextView
                                 android:id="@+id/tv_cookies_status"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Not set"
+                                android:text="@string/pref_not_set"
                                 android:textSize="14sp"
-                                android:textColor="@color/text_secondary"/>
+                                android:textColor="?attr/colorOnSurfaceVariant"/>
                         </LinearLayout>
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_edit" app:tint="@color/text_secondary" android:alpha="0.5"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_edit" app:tint="?attr/colorOnSurfaceVariant" android:alpha="0.5"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -459,8 +455,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                style="?attr/materialCardViewFilledStyle"
                 android:layout_marginBottom="16dp">
 
                 <LinearLayout
@@ -488,7 +483,7 @@
                             android:layout_weight="1"
                             android:text="@string/pref_allow_notifications"
                             android:textSize="16sp"
-                            android:textColor="@color/text_primary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginStart="16dp"/>
                         
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -497,7 +492,7 @@
                             android:layout_height="wrap_content"/>
                     </LinearLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
 
                     <!-- Microphone Permission -->
                     <LinearLayout
@@ -519,7 +514,7 @@
                             android:layout_weight="1"
                             android:text="@string/pref_allow_microphone"
                             android:textSize="16sp"
-                            android:textColor="@color/text_primary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginStart="16dp"/>
                         
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -542,8 +537,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                style="?attr/materialCardViewFilledStyle"
                 android:layout_marginBottom="16dp">
 
                 <LinearLayout
@@ -576,21 +570,21 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Check for Update"
+                                android:text="@string/pref_check_update"
                                 android:textSize="16sp"
-                                android:textColor="@color/text_primary"/>
+                                android:textColor="?attr/colorOnSurface"/>
                              <TextView
                                 android:id="@+id/tv_update_status"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Latest check: Never"
+                                android:text="@string/pref_never"
                                 android:textSize="14sp"
-                                android:textColor="@color/text_secondary"/>
+                                android:textColor="?attr/colorOnSurfaceVariant"/>
                         </LinearLayout>
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_view" app:tint="@color/text_secondary" android:rotation="270" android:alpha="0.5"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_view" app:tint="?attr/colorOnSurfaceVariant" android:rotation="270" android:alpha="0.5"/>
                     </LinearLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="56dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
 
                      <!-- GitHub -->
                     <LinearLayout
@@ -619,20 +613,60 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/pref_github"
                                 android:textSize="16sp"
-                                android:textColor="@color/text_primary"/>
+                                android:textColor="?attr/colorOnSurface"/>
                              <TextView
                                 android:id="@+id/tv_about_content"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Version ..."
+                                android:text="@string/pref_never"
                                 android:textSize="14sp"
-                                android:textColor="@color/text_secondary"/>
+                                android:textColor="?attr/colorOnSurfaceVariant"/>
                         </LinearLayout>
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_view" app:tint="@color/text_secondary" android:rotation="270" android:alpha="0.5"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_view" app:tint="?attr/colorOnSurfaceVariant" android:rotation="270" android:alpha="0.5"/>
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
+
+                    <!-- Error Logs -->
+                    <LinearLayout
+                        android:id="@+id/btn_error_logs"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_menu_info_details"
+                            app:tint="?attr/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="16dp">
+                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/pref_error_logs"
+                                android:textSize="16sp"
+                                android:textColor="?attr/colorOnSurface"/>
+                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/pref_error_logs_desc"
+                                android:textSize="14sp"
+                                android:textColor="?attr/colorOnSurfaceVariant"/>
+                        </LinearLayout>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_view" app:tint="?attr/colorOnSurfaceVariant" android:rotation="270" android:alpha="0.5"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+    </com.tuhoang.silentpipe.ui.system.BounceScrollView>
 </LinearLayout>

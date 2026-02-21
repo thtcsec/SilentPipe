@@ -4,6 +4,7 @@ import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -23,4 +24,7 @@ public interface FavoriteDao {
 
     @Query("DELETE FROM favorites WHERE url = :url")
     void deleteByUrl(String url);
+
+    @Update
+    void update(FavoriteItem item);
 }

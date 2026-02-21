@@ -88,4 +88,85 @@
     <string name="nav_about">Thông tin</string>
     <string name="nav_github_about">GitHub / Thông tin</string>
     <string name="nav_version">Phiên bản %s</string>
+
+    <!-- Equalizer & Advanced EQ -->
+    <string name="eq_dialog_title">Bộ chỉnh âm</string>
+    <string name="eq_enable">Bật bộ chỉnh âm</string>
+    <string name="eq_bass_boost">Siêu trầm</string>
+    <string name="eq_maximize">Mở rộng</string>
+    <string name="eq_pro_title">Bộ chỉnh âm chuyên nghiệp</string>
+    <string name="eq_on">Bật</string>
+    <string name="eq_off">Tắt</string>
+    <string name="eq_preset_label">Chế độ:</string>
+    <string name="eq_freq_bands">Dải tần</string>
+    <string name="eq_custom">Tùy chỉnh</string>
+    <string name="err_service_not_bound">Dịch vụ chưa sẵn sàng / Trình phát chưa chạy</string>
+    <string name="err_audio_manager_unavailable">Quản lý hiệu ứng âm thanh không khả dụng</string>
+
+    <!-- Speed Picker -->
+    <string name="speed_picker_title">Tốc độ phát</string>
+    <string name="speed_custom_label">Tùy chỉnh tốc độ:</string>
+    <string name="speed_reset">Đặt lại về 1.0x</string>
+
+    <!-- UI Elements -->
+    <string name="footer_version">Phiên bản %s</string>
+    <string name="unknown_error">Lỗi không xác định</string>
+
+    <!-- Navigation & Header -->
+    <string name="nav_audio_streamer">Trình phát âm thanh</string>
+    
+    <!-- Settings Activity Extras -->
+    <string name="pref_mini_player">Trình phát thu nhỏ ở dưới</string>
+    <string name="pref_show_video_exp">Hiển thị Video (Thử nghiệm)</string>
+    <string name="pref_visualizer_label">Sóng nhạc (Visualizer)</string>
+    <string name="pref_calculating">Đang tính toán...</string>
+    <string name="pref_yt_cookies">YouTube Cookies</string>
+    <string name="pref_not_set">Chưa thiết lập</string>
+    <string name="pref_check_update">Kiểm tra cập nhật</string>
+    <string name="pref_latest_check">Lần cuối: %s</string>
+    <string name="pref_never">Chưa bao giờ</string>
+    <string name="pref_error_logs">Nhật ký lỗi</string>
+    <string name="pref_error_logs_desc">Xem các lỗi ứng dụng gần đây</string>
+
+    <!-- Fragments -->
+    <string name="fav_no_items">Chưa có mục yêu thích nào.</string>
+    <string name="find_sound_tap">Chạm để nghe</string>
+    <string name="player_source_unknown">Nguồn: Không xác định</string>
+    <string name="player_now_playing">Đang phát...</string>
+
+    <!-- Quick Play -->
+    <string name="quick_play_title">Phát nhanh</string>
+    <string name="quick_play_now">Phát ngay</string>
+
+    <!-- Dialogs & Notifications -->
+    <string name="revoke_permission_hint">Bạn cần thu hồi quyền trong Cài đặt Hệ thống</string>
+    <string name="theme_system">Mặc định hệ thống</string>
+    <string name="theme_light">Sáng</string>
+    <string name="theme_dark">Tối</string>
+    <string name="update_checking">Đang kiểm tra cập nhật...</string>
+    <string name="update_available_title">Có bản cập nhật mới</string>
+    <string name="update_available_msg">Phiên bản mới %1$s đã sẵn sàng. Bạn đang dùng %2$s.</string>
+    <string name="dialog_download">Tải về</string>
+    <string name="up_to_date">Ứng dụng đã ở bản mới nhất (%s)</string>
+    <string name="update_failed">Kiểm tra thất bại: Mã %d</string>
+    <string name="update_error">Lỗi khi kiểm tra cập nhật</string>
+    <string name="set_skip_interval">Thiết lập khoảng nhảy</string>
+    <string name="skip_hint">Số giây (Ví dụ: 10)</string>
+    <string name="invalid_number">Số không hợp lệ</string>
+    <string name="cookies_set">Đã thiết lập Cookies</string>
+    <string name="cookies_hint">Dán cookies định dạng Netscape vào đây...</string>
+    <string name="cookies_msg">Dán cookies YouTube của bạn để tránh bị đánh dấu là bot.</string>
+    <string name="cookies_saved">Đã lưu cookies</string>
+    <string name="cookies_cleared">Đã xóa cookies</string>
+    <string name="error_logs_title">Nhật ký lỗi gần đây</string>
+    <string name="no_error_logs">Không có nhật ký lỗi nào</string>
+    <string name="logs_cleared">Đã xóa nhật ký</string>
+    <string name="copied_to_clipboard">Đã chép vào khay nhớ tạm</string>
+    
+    <!-- Generic Buttons -->
+    <string name="btn_set">Thiết lập</string>
+    <string name="btn_save">Lưu</string>
+    <string name="btn_clear">Xóa</string>
+    <string name="btn_copy_all">Chép tất cả</string>
+    <string name="btn_close">Đóng</string>
 </resources>

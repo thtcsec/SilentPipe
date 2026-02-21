@@ -42,18 +42,34 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
         switchEnable = view.findViewById(R.id.switch_eq_enable);
         seekBassBoost = view.findViewById(R.id.seek_bass_boost);
 
+        if (playbackService == null) {
+            playbackService = com.tuhoang.silentpipe.core.service.PlaybackService.instance;
+        }
+
         if (playbackService != null) {
-            setupEqualizerUI();
-        } else {
-             // In a real app we might bind here, but for now we assume it's passed or we can cast context if possible, 
-             // but 'setPlaybackService' pattern is fine if MainActivity orchestrates it.
-             // Or better: MainActivity finds this fragment and sets the service.
+            setupEqualizerUI(view);
         }
     }
 
-    private void setupEqualizerUI() {
+    private void setupEqualizerUI(View view) {
+        View controls = view.findViewById(R.id.layout_eq_controls);
+        View placeholder = view.findViewById(R.id.tv_no_session);
+        
         AudioEffectManager audioManager = playbackService.getAudioEffectManager();
-        if (audioManager == null) return;
+        if (audioManager == null) {
+            if (controls != null) controls.setVisibility(View.GONE);
+            if (placeholder != null) placeholder.setVisibility(View.VISIBLE);
+            return;
+        }
+        
+        if (controls != null) controls.setVisibility(View.VISIBLE);
+        if (placeholder != null) placeholder.setVisibility(View.GONE);
+
+        // Update Preset Name
+        TextView tvPreset = view.findViewById(R.id.tv_current_preset);
+        if (tvPreset != null) {
+            tvPreset.setText(audioManager.getCurrentPresetName());
+        }
 
         // Bass Boost
         seekBassBoost.setProgress(audioManager.getBassBoostStrength());
@@ -65,13 +81,7 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
-        View view = getView();
-        if (view != null) {
-            TextView tvPreset = view.findViewById(R.id.tv_current_preset);
-            if (tvPreset != null) {
-                tvPreset.setText(audioManager.getCurrentPresetName());
-            }
-        }
+
 
         // Switch
         switchEnable.setChecked(audioManager.isEnabled());
@@ -125,23 +135,12 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
         }
         
         // Handle Maximize
+        assert getView() != null;
         View btnMaximize = getView().findViewById(R.id.btn_eq_maximize);
         if (btnMaximize != null) {
             btnMaximize.setOnClickListener(v -> {
-                try {
-                    // Navigate only if the host has the nav controller (e.g. MainActivity)
-                    androidx.navigation.NavController navController = 
-                        androidx.navigation.Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-                    navController.navigate(R.id.navigation_advanced_eq);
-                    dismiss();
-                } catch (Exception e) {
-                     // We are likely in SettingsActivity
-                     android.content.Intent intent = new android.content.Intent(requireContext(), com.tuhoang.silentpipe.ui.main.MainActivity.class);
-                     intent.setAction("com.tuhoang.silentpipe.ACTION_OPEN_ADVANCED_EQ");
-                     intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                     startActivity(intent);
-                     dismiss();
-                }
+                com.tuhoang.silentpipe.ui.main.AdvancedEqActivity.start(requireContext());
+                dismiss();
             });
         }
     }

@@ -39,7 +39,7 @@ public class AdvancedEqActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.fragment_advanced_equalizer); // Reusing the layout
+        setContentView(R.layout.activity_advanced_eq); 
 
         bandsContainer = findViewById(R.id.layout_bands_container);
         switchEnable = findViewById(R.id.switch_eq_enable);
@@ -57,14 +57,14 @@ public class AdvancedEqActivity extends AppCompatActivity {
     private void setupEqualizerUI() {
         PlaybackService service = PlaybackService.instance;
         if (service == null) {
-            Toast.makeText(this, "Service not bound / Player not running", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.err_service_not_bound), Toast.LENGTH_SHORT).show();
             // Optional: bind service here if strictly needed, but usually Player is running when accessing EQ
             return;
         }
 
         AudioEffectManager audioManager = service.getAudioEffectManager();
         if (audioManager == null) {
-             Toast.makeText(this, "Audio Effect Manager unavailable", Toast.LENGTH_SHORT).show();
+             Toast.makeText(this, getString(R.string.err_audio_manager_unavailable), Toast.LENGTH_SHORT).show();
              return;
         }
 
@@ -134,10 +134,6 @@ public class AdvancedEqActivity extends AppCompatActivity {
             TextView textFreq = bandView.findViewById(R.id.text_frequency);
             TextView textLevel = bandView.findViewById(R.id.text_level);
             SeekBar seekLevel = bandView.findViewById(R.id.seek_bar_level);
-
-            // Make text white for this dark fragment/activity
-            textFreq.setTextColor(getResources().getColor(android.R.color.white, null));
-            textLevel.setTextColor(getResources().getColor(android.R.color.darker_gray, null));
 
             int centerFreq = audioManager.getCenterFreq(bandIndex);
             textFreq.setText(formatFreq(centerFreq));

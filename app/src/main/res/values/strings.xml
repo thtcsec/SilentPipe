@@ -87,4 +87,85 @@
     <string name="nav_about">About</string>
     <string name="nav_github_about">GitHub / About</string>
     <string name="nav_version">Version %s</string>
+
+    <!-- Equalizer & Advanced EQ -->
+    <string name="eq_dialog_title">Audio Equalizer</string>
+    <string name="eq_enable">Enable Equalizer</string>
+    <string name="eq_bass_boost">Bass Boost</string>
+    <string name="eq_maximize">Maximize Equalizer</string>
+    <string name="eq_pro_title">Professional EQ</string>
+    <string name="eq_on">ON</string>
+    <string name="eq_off">OFF</string>
+    <string name="eq_preset_label">Preset:</string>
+    <string name="eq_freq_bands">Frequency Bands</string>
+    <string name="eq_custom">Custom</string>
+    <string name="err_service_not_bound">Service not bound / Player not running</string>
+    <string name="err_audio_manager_unavailable">Audio Effect Manager unavailable</string>
+
+    <!-- Speed Picker -->
+    <string name="speed_picker_title">Playback Speed</string>
+    <string name="speed_custom_label">Custom Speed:</string>
+    <string name="speed_reset">Reset to 1.0x</string>
+
+    <!-- UI Elements -->
+    <string name="footer_version">Version %s</string>
+    <string name="unknown_error">Unknown Error</string>
+
+    <!-- Navigation & Header -->
+    <string name="nav_audio_streamer">Audio Streamer</string>
+    
+    <!-- Settings Activity Extras -->
+    <string name="pref_mini_player">Bottom Mini Player</string>
+    <string name="pref_show_video_exp">Show Video (Experimental)</string>
+    <string name="pref_visualizer_label">Audio Visualizer</string>
+    <string name="pref_calculating">Calculating...</string>
+    <string name="pref_yt_cookies">YouTube Cookies</string>
+    <string name="pref_not_set">Not set</string>
+    <string name="pref_check_update">Check for Update</string>
+    <string name="pref_latest_check">Latest check: %s</string>
+    <string name="pref_never">Never</string>
+    <string name="pref_error_logs">Error Logs</string>
+    <string name="pref_error_logs_desc">View recent application errors</string>
+
+    <!-- Fragments -->
+    <string name="fav_no_items">No favorites yet.</string>
+    <string name="find_sound_tap">Tap to Listen</string>
+    <string name="player_source_unknown">Source: Unknown</string>
+    <string name="player_now_playing">Now Playing...</string>
+
+    <!-- Quick Play -->
+    <string name="quick_play_title">Quick Play</string>
+    <string name="quick_play_now">Play Now</string>
+
+    <!-- Dialogs & Notifications -->
+    <string name="revoke_permission_hint">Revoke permission in System Settings</string>
+    <string name="theme_system">System Default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="update_checking">Checking for updates...</string>
+    <string name="update_available_title">Update Available</string>
+    <string name="update_available_msg">New version %1$s is available. You are on %2$s.</string>
+    <string name="dialog_download">Download</string>
+    <string name="up_to_date">You are up to date (%s)</string>
+    <string name="update_failed">Update check failed: Code %d</string>
+    <string name="update_error">Error checking updates</string>
+    <string name="set_skip_interval">Set Skip Interval</string>
+    <string name="skip_hint">Seconds (e.g. 10)</string>
+    <string name="invalid_number">Invalid number</string>
+    <string name="cookies_set">Cookies are set</string>
+    <string name="cookies_hint">Paste Netscape-format cookies here...</string>
+    <string name="cookies_msg">Paste your exported Netscape cookies to bypass bot detection.</string>
+    <string name="cookies_saved">Cookies saved</string>
+    <string name="cookies_cleared">Cookies cleared</string>
+    <string name="error_logs_title">Recent Error Logs</string>
+    <string name="no_error_logs">No error logs found</string>
+    <string name="logs_cleared">Logs cleared</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    
+    <!-- Generic Buttons -->
+    <string name="btn_set">Set</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_clear">Clear</string>
+    <string name="btn_copy_all">Copy All</string>
+    <string name="btn_close">Close</string>
 </resources>

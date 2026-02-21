@@ -22,6 +22,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import android.util.Log;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -101,7 +102,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             } else {
                 // Cannot revoke programmatically, guide user to settings? For now just UI toggle.
-                Toast.makeText(this, "Revoke permission in System Settings", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.revoke_permission_hint), Toast.LENGTH_LONG).show();
                 switchNotif.setChecked(true); // Revert
             }
         });
@@ -110,7 +111,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (switchMic.isChecked()) {
                 requestMicPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO);
             } else {
-                 Toast.makeText(this, "Revoke permission in System Settings", Toast.LENGTH_LONG).show();
+                  Toast.makeText(this, getString(R.string.revoke_permission_hint), Toast.LENGTH_LONG).show();
                  switchMic.setChecked(true); // Revert
                 //openAppSettings();
             }
@@ -159,7 +160,7 @@ public class SettingsActivity extends AppCompatActivity {
         startActivity(intent);
     }
     private void showThemeDialog() {
-        String[] themes = {"System Default", "Light", "Dark"};
+        String[] themes = {getString(R.string.theme_system), getString(R.string.theme_light), getString(R.string.theme_dark)};
         int currentMode = androidx.appcompat.app.AppCompatDelegate.getDefaultNightMode();
         int checkedItem = 0;
         if (currentMode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO) checkedItem = 1;
@@ -175,7 +176,7 @@ public class SettingsActivity extends AppCompatActivity {
                 androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(mode);
                 dialog.dismiss();
             })
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show();
     }
 
@@ -183,10 +184,13 @@ public class SettingsActivity extends AppCompatActivity {
         String[] languages = {"English", "Tiếng Việt"};
         String[] codes = {"en", "vi"};
         
-        // Determine current selection based on current locale
+        // Determine current selection based on app locales
         int checkedItem = 0;
-        String currentParams = androidx.core.os.LocaleListCompat.getAdjustedDefault().toLanguageTags();
-        if (currentParams.contains("vi")) checkedItem = 1;
+        androidx.core.os.LocaleListCompat currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales();
+        if (!currentLocales.isEmpty()) {
+            String primaryLocale = currentLocales.get(0).getLanguage();
+            if ("vi".equals(primaryLocale)) checkedItem = 1;
+        }
 
         new AlertDialog.Builder(this)
             .setTitle(getString(R.string.pref_language_en)) // Reuse string resource or generic "Language"
@@ -194,10 +198,12 @@ public class SettingsActivity extends AppCompatActivity {
                 if (which < codes.length) {
                     androidx.core.os.LocaleListCompat appLocale = androidx.core.os.LocaleListCompat.forLanguageTags(codes[which]);
                     androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(appLocale);
+                    // Force refresh activity to apply immediately? 
+                    // setApplicationLocales usually triggers recreate() but sometimes it's sluggish
                 }
                 dialog.dismiss();
             })
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show();
     }
 
@@ -211,7 +217,7 @@ public class SettingsActivity extends AppCompatActivity {
                 size += getDirSize(getCacheDir());
                 size += getDirSize(getExternalCacheDir());
             } catch (Exception e) {
-                android.util.Log.e(TAG, "Error calculating cache size", e);
+                Log.e(TAG, "Error calculating cache size", e);
             }
 
             deleteDir(getCacheDir());
@@ -221,8 +227,6 @@ public class SettingsActivity extends AppCompatActivity {
             
             String formattedSize = android.text.format.Formatter.formatFileSize(this, size);
             Toast.makeText(this, getString(R.string.cache_cleaned, formattedSize), Toast.LENGTH_SHORT).show();
-            updateCacheSize();
-        });
             updateCacheSize();
         });
         
@@ -237,7 +241,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void checkForUpdate() {
-        Toast.makeText(this, "Checking for updates...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, getString(R.string.update_checking), Toast.LENGTH_SHORT).show();
         new Thread(() -> {
             try {
                 java.net.URL url = new java.net.URL("https://api.github.com/repos/thtcsec/SilentPipe/releases/latest");
@@ -260,24 +264,24 @@ public class SettingsActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         if (!latestTag.equals(currentTag)) {
                             new AlertDialog.Builder(this)
-                                .setTitle("Update Available")
-                                .setMessage("New version " + latestTag + " is available. You are on " + currentTag + ".")
-                                .setPositiveButton("Download", (d, w) -> {
+                                .setTitle(getString(R.string.update_available_title))
+                                .setMessage(getString(R.string.update_available_msg, latestTag, currentTag))
+                                .setPositiveButton(getString(R.string.dialog_download), (d, w) -> {
                                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(json.optString("html_url")));
                                     startActivity(browserIntent);
                                 })
-                                .setNegativeButton("Cancel", null)
+                                .setNegativeButton(getString(R.string.dialog_cancel), null)
                                 .show();
                         } else {
-                            Toast.makeText(this, "You are up to date (" + currentTag + ")", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, getString(R.string.up_to_date, currentTag), Toast.LENGTH_SHORT).show();
                         }
                     });
                 } else {
-                     runOnUiThread(() -> Toast.makeText(this, "Update check failed: Code " + responseCode, Toast.LENGTH_SHORT).show());
+                     runOnUiThread(() -> Toast.makeText(this, getString(R.string.update_failed, responseCode), Toast.LENGTH_SHORT).show());
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(this, "Error checking updates", Toast.LENGTH_SHORT).show());
+                Log.e(TAG, "Error checking updates", e);
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.update_error), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }
@@ -330,7 +334,7 @@ public class SettingsActivity extends AppCompatActivity {
                 size += getDirSize(getCacheDir());
                 size += getDirSize(getExternalCacheDir());
             } catch (Exception e) {
-                android.util.Log.e(TAG, "Error updating cache size", e);
+                Log.e(TAG, "Error updating cache size", e);
             }
             
             long finalSize = size;
@@ -369,7 +373,7 @@ public class SettingsActivity extends AppCompatActivity {
         switchHq.setChecked(prefs.getBoolean("pref_hq_audio", false));
         switchHq.setOnCheckedChangeListener((buttonView, isChecked) -> {
             prefs.edit().putBoolean("pref_hq_audio", isChecked).apply();
-            Toast.makeText(this, "HQ Audio " + (isChecked ? "Enabled" : "Disabled"), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.pref_hq_audio) + ": " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
         });
 
         // Skip Time
@@ -392,19 +396,19 @@ public class SettingsActivity extends AppCompatActivity {
         input.setHint("Seconds (e.g. 10)");
         
         new AlertDialog.Builder(this)
-            .setTitle("Set Skip Interval")
+            .setTitle(getString(R.string.set_skip_interval))
             .setView(input)
-            .setPositiveButton("Set", (dialog, which) -> {
+            .setPositiveButton(getString(R.string.btn_set), (dialog, which) -> {
                 try {
                     int val = Integer.parseInt(input.getText().toString());
                     if (val <= 0) val = 10;
                     prefs.edit().putInt("pref_skip_time", val).apply();
                     updateSkipTimeText();
                 } catch (NumberFormatException e) {
-                    Toast.makeText(this, "Invalid number", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.invalid_number), Toast.LENGTH_SHORT).show();
                 }
             })
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show();
     }
 
@@ -418,33 +422,33 @@ public class SettingsActivity extends AppCompatActivity {
 
         String currentCookies = prefs.getString("pref_youtube_cookies", "");
         if (!currentCookies.isEmpty()) {
-            tvStatus.setText("Cookies are set");
+            tvStatus.setText(getString(R.string.cookies_set));
         }
 
         btnCookies.setOnClickListener(v -> {
             EditText input = new EditText(this);
-            input.setHint("Paste Netscape-format cookies here...");
+            input.setHint(getString(R.string.cookies_hint));
             input.setText(prefs.getString("pref_youtube_cookies", ""));
             input.setGravity(android.view.Gravity.TOP);
             input.setLines(10);
             input.setVerticalScrollBarEnabled(true);
 
             new AlertDialog.Builder(this)
-                .setTitle("YouTube Cookies")
-                .setMessage("Paste your exported Netscape cookies to bypass bot detection.")
+                .setTitle(getString(R.string.pref_yt_cookies))
+                .setMessage(getString(R.string.cookies_msg))
                 .setView(input)
-                .setPositiveButton("Save", (dialog, which) -> {
+                .setPositiveButton(getString(R.string.btn_save), (dialog, which) -> {
                     String cookies = input.getText().toString();
                     prefs.edit().putString("pref_youtube_cookies", cookies).apply();
-                    tvStatus.setText(cookies.isEmpty() ? "Not set" : "Cookies are set");
-                    Toast.makeText(this, "Cookies saved", Toast.LENGTH_SHORT).show();
+                    tvStatus.setText(cookies.isEmpty() ? getString(R.string.pref_not_set) : getString(R.string.cookies_set));
+                    Toast.makeText(this, getString(R.string.cookies_saved), Toast.LENGTH_SHORT).show();
                 })
-                .setNegativeButton("Clear", (dialog, which) -> {
+                .setNegativeButton(getString(R.string.btn_clear), (dialog, which) -> {
                     prefs.edit().remove("pref_youtube_cookies").apply();
-                    tvStatus.setText("Not set");
-                    Toast.makeText(this, "Cookies cleared", Toast.LENGTH_SHORT).show();
+                    tvStatus.setText(getString(R.string.pref_not_set));
+                    Toast.makeText(this, getString(R.string.cookies_cleared), Toast.LENGTH_SHORT).show();
                 })
-                .setNeutralButton("Cancel", null)
+                .setNeutralButton(getString(R.string.dialog_cancel), null)
                 .show();
         });
     }
@@ -455,12 +459,60 @@ public class SettingsActivity extends AppCompatActivity {
             TextView tvAbout = findViewById(R.id.tv_about_content);
             if (tvAbout != null) tvAbout.setText("SilentPipe v" + version + "\nAuthor: tuhoang / thtcsec");
         } catch (PackageManager.NameNotFoundException e) {
-            android.util.Log.e(TAG, "Package name not found", e);
+            Log.e(TAG, "Package name not found", e);
         }
 
         findViewById(R.id.btn_github).setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/thtcsec/SilentPipe"));
             startActivity(intent);
         });
+        
+        setupErrorLogs();
+    }
+
+    private void setupErrorLogs() {
+        android.view.View btnLogs = findViewById(R.id.btn_error_logs);
+        if (btnLogs != null) {
+            btnLogs.setOnClickListener(v -> showErrorLogsDialog());
+        }
+    }
+
+    private void showErrorLogsDialog() {
+        java.util.List<String> logs = com.tuhoang.silentpipe.core.manager.ErrorLogManager.getInstance(this).getLogs();
+        
+        if (logs.isEmpty()) {
+            Toast.makeText(this, getString(R.string.no_error_logs), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (String log : logs) {
+            sb.append(log).append("\n\n");
+        }
+
+        TextView tv = new TextView(this);
+        tv.setText(sb.toString());
+        tv.setPadding(32, 32, 32, 32);
+        tv.setTextIsSelectable(true);
+        tv.setTypeface(android.graphics.Typeface.MONOSPACE);
+
+        android.widget.ScrollView scrollView = new android.widget.ScrollView(this);
+        scrollView.addView(tv);
+
+        new AlertDialog.Builder(this)
+            .setTitle(getString(R.string.error_logs_title))
+            .setView(scrollView)
+            .setPositiveButton(getString(R.string.btn_close), null)
+            .setNeutralButton(getString(R.string.btn_clear), (dialog, which) -> {
+                com.tuhoang.silentpipe.core.manager.ErrorLogManager.getInstance(this).clearLogs();
+                Toast.makeText(this, getString(R.string.logs_cleared), Toast.LENGTH_SHORT).show();
+            })
+            .setNegativeButton(getString(R.string.btn_copy_all), (dialog, which) -> {
+                 android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                 android.content.ClipData clip = android.content.ClipData.newPlainText("Error Logs", sb.toString());
+                 clipboard.setPrimaryClip(clip);
+                 Toast.makeText(this, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show();
+            })
+            .show();
     }
 }

@@ -18,7 +18,10 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.tuhoang.silentpipe.R;
 import com.tuhoang.silentpipe.ui.main.SettingsActivity;
 
+import android.util.Log;
+
 public class NavigationHelper {
+    private static final String TAG = "NavigationHelper";
     private final AppCompatActivity activity;
     private NavController navController;
     private DrawerLayout drawerLayout;
@@ -38,14 +41,6 @@ public class NavigationHelper {
 
             drawerLayout = activity.findViewById(R.id.drawer_layout);
             NavigationView navigationView = activity.findViewById(R.id.nav_view);
-
-            // Hide Toolbar on Advanced EQ
-            navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-                boolean isAdvancedEQ = destination.getId() == R.id.navigation_advanced_eq;
-                View appbar = activity.findViewById(R.id.appbar_layout);
-                if (appbar != null) appbar.setVisibility(isAdvancedEQ ? View.GONE : View.VISIBLE);
-                bottomNav.setVisibility(isAdvancedEQ ? View.GONE : View.VISIBLE); 
-            });
 
             // Setup Toolbar
             MaterialToolbar toolbar = activity.findViewById(R.id.toolbar);
@@ -96,7 +91,7 @@ public class NavigationHelper {
                         tvFooter.setText("Version " + version);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Error getting package info", e);
                 }
 
                 navigationView.setNavigationItemSelectedListener(item -> {

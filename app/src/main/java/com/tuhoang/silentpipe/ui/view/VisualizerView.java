@@ -4,11 +4,14 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.media.audiofx.Visualizer;
 import android.util.AttributeSet;
 import android.view.View;
+import android.util.Log;
 
 public class VisualizerView extends View {
+    private static final String TAG = "VisualizerView";
     private byte[] mBytes;
     private float[] mPoints;
     private Rect mRect = new Rect();
@@ -116,14 +119,14 @@ public class VisualizerView extends View {
             mVisualizer.setDataCaptureListener(captureListener, Visualizer.getMaxCaptureRate() / 2, true, false);
             mVisualizer.setEnabled(true);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error linking visualizer", e);
         }
     }
     
     public void release() {
         if (mVisualizer != null) {
             mVisualizer.release();
-            mVisualizer = None;
+            mVisualizer = null;
         }
     }
 }

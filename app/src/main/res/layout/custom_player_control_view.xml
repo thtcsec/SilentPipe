@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="SilentPipe"
+        android:text="@string/app_name"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold"
@@ -26,7 +26,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="Source: Unknown"
+        android:text="@string/player_source_unknown"
         android:textColor="#AAAAAA"
         android:textSize="12sp"
         android:paddingBottom="8dp"/>

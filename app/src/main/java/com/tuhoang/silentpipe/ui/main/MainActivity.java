@@ -3,11 +3,19 @@ package com.tuhoang.silentpipe.ui.main;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -29,6 +37,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.tuhoang.silentpipe.ui.manager.ClipboardHelper;
 import com.tuhoang.silentpipe.ui.manager.DownloadHelper;
 import com.tuhoang.silentpipe.ui.manager.NavigationHelper;
+import com.tuhoang.silentpipe.ui.view.VisualizerView;
 
 
 import java.util.ArrayList;
@@ -40,6 +49,8 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     private MediaController mediaController;
     private String currentStreamUrl;
     private FavoriteItem currentMediaItem;
+
+    private VisualizerView visualizerView;
     
     // Helpers
     private ClipboardHelper clipboardHelper;
@@ -102,10 +113,8 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         visualizerView = findViewById(R.id.visualizer_view);
         
         // Permissions for Visualizer
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, 102);
-            }
+        if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, 102);
         }
 
         // Setup Buttons
@@ -175,6 +184,10 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             }
         });
 
+        if (visualizerView != null) {
+            visualizerView.setOnClickListener(v -> showEqualizer());
+        }
+
         makeDraggable(findViewById(R.id.fab_stack));
     }
 
@@ -184,12 +197,12 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     private static final int MOVE_THRESHOLD = 20;
 
     private void makeDraggable(View container) {
-        android.view.ViewGroup group = (android.view.ViewGroup) container;
+        ViewGroup group = (ViewGroup) container;
         View.OnTouchListener dragListener = new View.OnTouchListener() {
             private boolean isDragging = false;
 
             @Override
-            public boolean onTouch(View v, android.view.MotionEvent event) {
+            public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case android.view.MotionEvent.ACTION_DOWN:
                         dX = container.getX() - event.getRawX();
@@ -235,8 +248,14 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             }
         };
 
-        for (int i = 0; i < group.getChildCount(); i++) {
-            group.getChildAt(i).setOnTouchListener(dragListener);
+        TextView tvFooter = findViewById(R.id.tv_version_footer);
+        if (tvFooter != null) {
+            try {
+                String version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+                tvFooter.setText(getString(R.string.footer_version, version));
+            } catch (Exception e) {
+                tvFooter.setText(getString(R.string.footer_version, "1.0"));
+            }
         }
     }
 
@@ -251,10 +270,10 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         
         View restoreBtn = findViewById(R.id.fab_restore);
         View nowPlayingCard = findViewById(R.id.card_now_playing);
-        android.widget.TextView tvNowPlaying = findViewById(R.id.tv_now_playing);
+        TextView tvNowPlaying = findViewById(R.id.tv_now_playing);
         
         View bottomPlayer = findViewById(R.id.layout_bottom_player);
-        android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
         boolean useBottomPlayer = prefs.getBoolean("pref_use_bottom_player", false);
 
         if (show) {
@@ -294,7 +313,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     private void updateBottomPlayerUI() {
         if (currentMediaItem == null) return;
         
-        android.widget.TextView tvTitle = findViewById(R.id.tv_bottom_player_title);
+        TextView tvTitle = findViewById(R.id.tv_bottom_player_title);
         if (tvTitle != null) {
             tvTitle.setText(currentMediaItem.title);
             tvTitle.setSelected(true);
@@ -307,25 +326,25 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     }
 
     private void showSpeedDialog() {
-        if (mediaController == null) return;
-        
-        String[] speeds = {"0.5x", "0.75x", "1.0x", "1.25x", "1.5x", "2.0x", getString(R.string.dialog_speed_custom)};
-        float[] values = {0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f};
+        new SpeedPickerFragment().show(getSupportFragmentManager(), "speed_picker");
+    }
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle(getString(R.string.dialog_speed_title))
-            .setItems(speeds, (dialog, which) -> {
-                if (which < values.length) {
-                    setSpeed(values[which]);
-                } else {
-                    showCustomSpeedDialog();
-                }
-            })
-            .show();
+    public float getCurrentSpeed() {
+        if (mediaController != null) {
+            return mediaController.getPlaybackParameters().speed;
+        }
+        return 1.0f;
+    }
+
+    public void setSpeed(float speed) {
+        if (mediaController != null) {
+            mediaController.setPlaybackParameters(new androidx.media3.common.PlaybackParameters(speed));
+            Toast.makeText(this, getString(R.string.speed_picker_title) + ": " + speed + "x", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void showCustomSpeedDialog() {
-        android.widget.EditText input = new android.widget.EditText(this);
+        EditText input = new EditText(this);
         input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         input.setHint(getString(R.string.dialog_custom_speed_hint));
 
@@ -337,18 +356,11 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                     float speed = Float.parseFloat(input.getText().toString());
                     setSpeed(speed);
                 } catch (NumberFormatException e) {
-                    Toast.makeText(this, "Invalid number", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.toast_invalid_url), Toast.LENGTH_SHORT).show();
                 }
             })
             .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show();
-    }
-
-    private void setSpeed(float speed) {
-        if (mediaController != null) {
-            mediaController.setPlaybackParameters(new androidx.media3.common.PlaybackParameters(speed));
-            Toast.makeText(this, "Speed: " + speed + "x", Toast.LENGTH_SHORT).show();
-        }
     }
 
     private void toggleFavorite() {
@@ -400,7 +412,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 playerView.setPlayer(mediaController);
                 handleIntent(getIntent());
             } catch (ExecutionException | InterruptedException e) {
-                android.util.Log.e("MainActivity", "Error initializing MediaController", e);
+                Log.e(TAG, "Error initializing MediaController", e);
             }
             
             // Sync UI state
@@ -411,22 +423,21 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 mediaController.isPlaying())) {
                     
                  // Restore metadata if possible (optional, but UI sync is key)
-                 if (mediaController.getMediaMetadata() != null) {
-                     CharSequence title = mediaController.getMediaMetadata().title;
-                     if (title != null) {
-                         android.widget.TextView tvTitle = playerView.findViewById(R.id.tv_player_title);
-                         if (tvTitle != null) tvTitle.setText(title);
-                         
-                         android.widget.TextView tvNowPlaying = findViewById(R.id.tv_now_playing);
-                         if (tvNowPlaying != null) {
-                             tvNowPlaying.setText(title);
-                             tvNowPlaying.setSelected(true);
-                         }
-                         updateBottomPlayerUI(); // Sync bottom player
-                     }
-                 }
+                mediaController.getMediaMetadata();
+                CharSequence title = mediaController.getMediaMetadata().title;
+                if (title != null) {
+                    TextView tvTitle = playerView.findViewById(R.id.tv_player_title);
+                    if (tvTitle != null) tvTitle.setText(title);
 
-                 // Fix: Only auto-show (Mini Player) if playing and nothing is visible.
+                    TextView tvNowPlaying = findViewById(R.id.tv_now_playing);
+                    if (tvNowPlaying != null) {
+                        tvNowPlaying.setText(title);
+                        tvNowPlaying.setSelected(true);
+                    }
+                    updateBottomPlayerUI(); // Sync bottom player
+                }
+
+                // Fix: Only auto-show (Mini Player) if playing and nothing is visible.
                      // Do NOT force maximized player (togglePlayer(true)) on resume.
                  boolean isFullPlayerVisible = playerView.getVisibility() == View.VISIBLE;
                  View bottomPlayer = findViewById(R.id.layout_bottom_player);
@@ -441,11 +452,11 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                  }
 
                  // Setup Visualizer
-                 android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
+                 SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
                  boolean showVisualizer = prefs.getBoolean("pref_show_visualizer", false);
                  boolean showVideo = prefs.getBoolean("pref_show_video", false);
                  
-                 if (showVisualizer && !showVideo && mediaController.isPlaying()) {
+                 if (showVisualizer && !showVideo) {
                      if (visualizerView != null) {
                           visualizerView.setVisibility(View.VISIBLE);
                           PlaybackService service = PlaybackService.instance;
@@ -455,7 +466,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                                   try {
                                       visualizerView.link(sessionId);
                                   } catch (Exception e) {
-                                      android.util.Log.e(TAG, "Failed to link visualizer", e);
+                                      Log.e(TAG, "Failed to link visualizer", e);
                                   }
                               }
                           }
@@ -480,13 +491,16 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (visualizerView != null) {
+            visualizerView.release();
+        }
         if (executorService != null) {
             executorService.shutdown();
         }
     }
 
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
         if (mediaController != null) {
@@ -499,18 +513,6 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             clipboardHelper.checkClipboard(false);
             setIntent(new Intent()); // Consume intent
             return;
-        }
-
-        if ("com.tuhoang.silentpipe.ACTION_OPEN_ADVANCED_EQ".equals(intent.getAction())) {
-             try {
-                androidx.navigation.NavController navController = 
-                    androidx.navigation.Navigation.findNavController(this, R.id.nav_host_fragment);
-                navController.navigate(R.id.navigation_advanced_eq);
-             } catch (Exception e) { 
-                android.util.Log.e(TAG, "Error navigating to advanced EQ", e);
-             }
-             setIntent(new Intent()); // Consume intent
-             return;
         }
         
         ignoreNextClipboardCheck = true; // Intent handling should suppress auto-check
@@ -554,7 +556,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     }
 
     private void showUrlInputDialog(String prefill) {
-        android.widget.EditText input = new android.widget.EditText(this);
+        EditText input = new EditText(this);
         input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_URI);
         input.setText(prefill);
         if (!prefill.isEmpty()) input.setSelection(prefill.length());
@@ -584,12 +586,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     }
 
     public void showEqualizer() {
-        PlaybackService service = PlaybackService.instance;
-        if (service != null) {
-            com.tuhoang.silentpipe.ui.main.AdvancedEqActivity.start(this);
-        } else {
-            Toast.makeText(this, "Service not ready. Play something first!", Toast.LENGTH_SHORT).show();
-        }
+        new com.tuhoang.silentpipe.ui.main.EqualizerFragment().show(getSupportFragmentManager(), "equalizer");
     }
 
     public void loadVideo(String url) {
@@ -604,7 +601,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 Python py = Python.getInstance();
                 PyObject module = py.getModule("media_extractor");
                 
-                android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
+                SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
                 boolean preferHq = prefs.getBoolean("pref_hq_audio", false);
                 boolean showVideo = prefs.getBoolean("pref_show_video", false);
                 String cookies = prefs.getString("pref_youtube_cookies", "");
@@ -612,7 +609,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 PyObject result = module.callAttr("extract_info", url, preferHq, cookies, showVideo);
 
                 if (result == null) {
-                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_player, "No response"), Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_player, getString(R.string.unknown_error)), Toast.LENGTH_LONG).show());
                     return;
                 }
 
@@ -716,19 +713,22 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                                 });
                                 
                             } catch (Exception e) {
+                                com.tuhoang.silentpipe.core.manager.ErrorLogManager.getInstance(this).logError("Player", e.getMessage());
                                 Toast.makeText(this, getString(R.string.toast_error_player, e.getMessage()), Toast.LENGTH_LONG).show();
                             }
                         }
                     });
                 } else if (errorObj != null && !errorObj.toString().equals("None")) {
                     String error = errorObj.toString();
+                    com.tuhoang.silentpipe.core.manager.ErrorLogManager.getInstance(this).logError("Python", error);
                     runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_python, error), Toast.LENGTH_LONG).show());
                 } else {
                     String rawResult = result.toString();
                     runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, rawResult), Toast.LENGTH_LONG).show());
                 }
             } catch (Throwable e) {
-                android.util.Log.e("MainActivity", "Critical Error in loadVideo", e);
+                Log.e(TAG, "Critical Error in loadVideo", e);
+                com.tuhoang.silentpipe.core.manager.ErrorLogManager.getInstance(this).logError("MainActivity", "Critical: " + e.getMessage());
                 runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, e.getMessage()), Toast.LENGTH_LONG).show());
             }
         });

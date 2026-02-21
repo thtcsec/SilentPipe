@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="#121212">
+    android:background="?attr/colorSurface"
+    android:fitsSystemWindows="true">
 
     <!-- Header -->
     <LinearLayout
@@ -19,7 +20,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="@android:color/white"
+            app:tint="?attr/colorOnSurface"
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless"/>
@@ -28,8 +29,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Professional EQ"
-            android:textColor="@android:color/white"
+            android:text="@string/eq_pro_title"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="22sp"
             android:textStyle="bold"
             android:gravity="center"/>
@@ -38,8 +39,8 @@
             android:id="@+id/switch_eq_enable"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ON"
-            android:textColor="@android:color/white"/>
+            android:text="@string/eq_on"
+            android:textColor="?attr/colorOnSurface"/>
     </LinearLayout>
 
     <!-- Presets -->
@@ -49,15 +50,15 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:background="@drawable/rounded_bottom_sheet"
-        android:backgroundTint="#2A2A2A"
+        android:backgroundTint="?attr/colorSurfaceVariant"
         android:padding="12dp"
         android:layout_marginBottom="24dp">
         
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Preset:"
-            android:textColor="#AAAAAA"
+            android:text="@string/eq_preset_label"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:layout_marginEnd="16dp"/>
             
         <Spinner
@@ -83,8 +84,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Bass Boost"
-                android:textColor="@color/white"
+                android:text="@string/eq_bass_boost"
+                android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
                 
@@ -93,15 +94,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:progressTint="@android:color/white"
-                android:thumbTint="@android:color/white"
+                android:progressTint="?attr/colorPrimary"
+                android:thumbTint="?attr/colorPrimary"
                 android:layout_marginBottom="24dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Frequency Bands"
-                android:textColor="@color/white"
+                android:text="@string/eq_freq_bands"
+                android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp"/>
 

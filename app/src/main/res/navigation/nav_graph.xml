@@ -29,9 +29,4 @@
         android:label="@string/nav_find_sound"
         tools:layout="@layout/fragment_find_sound" />
 
-    <fragment
-        android:id="@+id/navigation_advanced_eq"
-        android:name="com.tuhoang.silentpipe.ui.main.AdvancedEqualizerFragment"
-        android:label="@string/pref_audio_equalizer"
-        tools:layout="@layout/fragment_advanced_equalizer" />
 </navigation>

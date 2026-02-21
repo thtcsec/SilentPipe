@@ -7,6 +7,8 @@ import android.media.audiofx.BassBoost;
 import android.media.audiofx.Equalizer;
 import android.util.Log;
 
+import com.tuhoang.silentpipe.R;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -205,7 +207,7 @@ public class AudioEffectManager {
                 presets.add(equalizer.getPresetName(i));
             }
         }
-        presets.add("Custom");
+        presets.add(context.getString(R.string.eq_custom));
         return presets;
     }
 
@@ -239,7 +241,7 @@ public class AudioEffectManager {
                 return equalizer.getPresetName(savedPreset);
             } catch (Exception e) { return "Unknown"; }
         }
-        return "Custom";
+        return context.getString(R.string.eq_custom);
     }
 
     public void release() {

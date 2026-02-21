@@ -14,6 +14,9 @@ public class SilentPipeApplication extends Application {
             Python.start(new AndroidPlatform(this));
         }
 
+        // Apply Material You Dynamic Colors
+        com.google.android.material.color.DynamicColors.applyToActivitiesIfAvailable(this);
+
         // Apply Theme
         android.content.SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", MODE_PRIVATE);
         int mode = prefs.getInt("pref_theme_mode", androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);

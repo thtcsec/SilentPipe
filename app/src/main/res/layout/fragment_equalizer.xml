@@ -18,7 +18,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Audio Equalizer"
+            android:text="@string/eq_dialog_title"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"/>
@@ -27,7 +27,7 @@
             android:id="@+id/tv_current_preset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Flat"
+            android:text="@string/eq_custom"
             android:textColor="@android:color/holo_blue_light"
             android:textStyle="italic"
             android:layout_marginEnd="16dp"/>
@@ -38,7 +38,7 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_crop"
-            android:contentDescription="Maximize Equalizer"
+            android:contentDescription="@string/eq_maximize"
             app:tint="@android:color/white"/>
     </LinearLayout>
 
@@ -53,7 +53,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Enable Equalizer"
+            android:text="@string/eq_enable"
             android:textColor="@android:color/white"/>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -62,8 +62,23 @@
             android:layout_height="wrap_content"/>
     </LinearLayout>
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/tv_no_session"
         android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:gravity="center"
+        android:text="@string/err_service_not_bound"
+        android:textColor="#888888"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/layout_eq_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_marginBottom="16dp">
@@ -71,7 +86,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Bass Boost"
+            android:text="@string/eq_bass_boost"
             android:textColor="#AAAAAA"
             android:textSize="12sp"/>
             
@@ -87,7 +102,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-        <!-- Bands will be added dynamically here -->
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
