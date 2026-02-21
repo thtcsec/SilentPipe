@@ -185,8 +185,6 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         });
 
         if (visualizerView != null) {
-            visualizerView.setOnClickListener(v -> showEqualizer());
-            
             // Apply Visualizer Style from Prefs
             SharedPreferences vizPrefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
             int vizStyleIndex = vizPrefs.getInt("pref_visualizer_style", 0);
@@ -215,8 +213,8 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case android.view.MotionEvent.ACTION_DOWN:
-                        dX = container.getX() - event.getRawX();
-                        dY = container.getY() - event.getRawY();
+                        dX = container.getTranslationX() - event.getRawX();
+                        dY = container.getTranslationY() - event.getRawY();
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
                         isDragging = false;
@@ -231,17 +229,11 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                                 isDragging = true;
                                 v.setPressed(false);
                             }
-                            float newX = event.getRawX() + dX;
-                            float newY = event.getRawY() + dY;
+                            float newTranslationX = event.getRawX() + dX;
+                            float newTranslationY = event.getRawY() + dY;
                             
-                            int bottomNavHeight = findViewById(R.id.bottom_nav).getHeight();
-                            if (bottomNavHeight == 0) bottomNavHeight = 200;
-                            
-                            newX = Math.max(0, Math.min(newX, ((View)container.getParent()).getWidth() - container.getWidth()));
-                            newY = Math.max(0, Math.min(newY, ((View)container.getParent()).getHeight() - container.getHeight() - bottomNavHeight - 50));
-                            
-                            container.setX(newX);
-                            container.setY(newY);
+                            container.setTranslationX(newTranslationX);
+                            container.setTranslationY(newTranslationY);
                         }
                         return true;
                     case android.view.MotionEvent.ACTION_UP:

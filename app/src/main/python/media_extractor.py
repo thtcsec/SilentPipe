@@ -149,9 +149,11 @@ def _clean_tiktok_title(title, html):
     """
     Cleans TikTok's generic 'Make Your Day' titles and falls back to description.
     """
-    generic_patterns = ["TikTok - Make Your Day", "TikTok", "TikTok Audio", "Video"]
-    
-    is_generic = any(p == title for p in generic_patterns) or not title
+    if not title:
+        title = ""
+        
+    lower_title = title.lower()
+    is_generic = "tiktok" in lower_title or "video" in lower_title or "music" in lower_title or not title.strip()
     
     if is_generic:
         # Try og:description
@@ -159,17 +161,18 @@ def _clean_tiktok_title(title, html):
         desc_match = re.search(r'<meta property="og:description" content="(.*?)"', html)
         if desc_match:
             desc = desc_match.group(1).strip()
-            # TikTok descriptions often have " | TikTok" at the end
+            # TikTok descriptions often have " | TikTok" at the end, or similar patterns
             if " | " in desc:
                 desc = desc.split(" | ")[0]
-            if desc and "on TikTok" not in desc:
+            if desc and "on tiktok" not in desc.lower():
                 return desc
                 
     # If still generic or we have a title but it's just 'TikTok', try to keep it cleaner
     if title:
-        return title.replace(" | TikTok", "").replace("TikTok - Make Your Day", "").strip() or "TikTok Audio"
+        clean_t = title.replace(" | TikTok", "").replace("TikTok - Make Your Day", "").strip()
+        return clean_t if clean_t and clean_t.lower() != "tiktok" else "TikTok Post"
         
-    return "TikTok Audio"
+    return "TikTok Post"
 
 def extract_info(url, prefer_hq=False, cookie_str=None, show_video=False):
     if IMPORT_ERROR:
