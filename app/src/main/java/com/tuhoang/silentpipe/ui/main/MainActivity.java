@@ -87,6 +87,24 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (currentMediaItem != null) {
+            // Apply preferences automatically when returning to the app
+            boolean isMaximized = playerView != null && playerView.getVisibility() == View.VISIBLE;
+            togglePlayer(isMaximized);
+            
+            if (visualizerView != null) {
+                SharedPreferences vizPrefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
+                int vizStyleIndex = vizPrefs.getInt("pref_visualizer_style", 0);
+                visualizerView.setStyle(vizStyleIndex == 1 ? 
+                    com.tuhoang.silentpipe.ui.view.VisualizerView.VisualizerStyle.BARS : 
+                    com.tuhoang.silentpipe.ui.view.VisualizerView.VisualizerStyle.WAVEFORM);
+            }
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
@@ -293,6 +311,15 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             if (visualizerView != null && showVisualizer) {
                  visualizerView.setVisibility(View.VISIBLE);
                  visualizerView.animate().alpha(1f).setDuration(200).start();
+                 com.tuhoang.silentpipe.core.service.PlaybackService service = com.tuhoang.silentpipe.core.service.PlaybackService.instance;
+                 if (service != null && service.getAudioEffectManager() != null) {
+                     int sessionId = service.getAudioEffectManager().getAudioSessionId();
+                     if (sessionId != 0) {
+                         try {
+                             visualizerView.link(sessionId);
+                         } catch (Exception e) {}
+                     }
+                 }
             }
             
             for (View view : fabChildren) view.setVisibility(View.VISIBLE);
