@@ -55,7 +55,7 @@ public class FavoritesFragment extends Fragment {
                         @Override
                         public void onItemClick(FavoriteItem item) {
                             if (getActivity() instanceof MainActivity) {
-                                ((MainActivity) getActivity()).loadVideo(item.url);
+                                ((MainActivity) getActivity()).loadVideo(item.url, item);
                             }
                         }
 

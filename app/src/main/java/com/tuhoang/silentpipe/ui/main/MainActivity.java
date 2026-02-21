@@ -186,6 +186,16 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
 
         if (visualizerView != null) {
             visualizerView.setOnClickListener(v -> showEqualizer());
+            
+            // Apply Visualizer Style from Prefs
+            SharedPreferences vizPrefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
+            int vizStyleIndex = vizPrefs.getInt("pref_visualizer_style", 0);
+            visualizerView.setStyle(vizStyleIndex == 1 ? 
+                com.tuhoang.silentpipe.ui.view.VisualizerView.VisualizerStyle.BARS : 
+                com.tuhoang.silentpipe.ui.view.VisualizerView.VisualizerStyle.WAVEFORM);
+            
+            // Set Color (Fallback to white while diagnosing theme attr)
+            visualizerView.setColor(android.graphics.Color.WHITE);
         }
 
         makeDraggable(findViewById(R.id.fab_stack));
@@ -590,11 +600,33 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     }
 
     public void loadVideo(String url) {
+        loadVideo(url, null);
+    }
+
+    public void loadVideo(String url, com.tuhoang.silentpipe.data.FavoriteItem cachedItem) {
         ignoreNextClipboardCheck = true; 
         runOnUiThread(() -> {
-            Toast.makeText(this, getString(R.string.toast_processing_link), Toast.LENGTH_SHORT).show();
-            playerView.setVisibility(View.VISIBLE);
-            togglePlayer(true); 
+            if (cachedItem != null) {
+                playerView.setVisibility(View.VISIBLE);
+                togglePlayer(true);
+                
+                android.widget.TextView tvTitle = playerView.findViewById(R.id.tv_player_title);
+                if (tvTitle != null) tvTitle.setText(cachedItem.title);
+
+                View cardNowPlaying = findViewById(R.id.card_now_playing);
+                android.widget.TextView tvNowPlaying = findViewById(R.id.tv_now_playing);
+                if (tvNowPlaying != null) {
+                    tvNowPlaying.setText(cachedItem.title);
+                    tvNowPlaying.setSelected(true);
+                    if (cardNowPlaying != null) cardNowPlaying.setVisibility(View.VISIBLE);
+                }
+                
+                Toast.makeText(this, getString(R.string.toast_processing_link), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, getString(R.string.toast_processing_link), Toast.LENGTH_SHORT).show();
+                playerView.setVisibility(View.VISIBLE);
+                togglePlayer(true); 
+            }
         });
         executorService.execute(() -> {
             try {

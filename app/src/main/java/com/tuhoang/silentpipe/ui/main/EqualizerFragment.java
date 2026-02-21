@@ -49,21 +49,27 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
         if (playbackService != null) {
             setupEqualizerUI(view);
         }
+
+        // Handle Maximize - Move outside setupEqualizerUI to ensure it works when idle
+        View btnMaximize = view.findViewById(R.id.btn_eq_maximize);
+        if (btnMaximize != null) {
+            btnMaximize.setOnClickListener(v -> {
+                com.tuhoang.silentpipe.ui.main.AdvancedEqActivity.start(requireContext());
+                dismiss();
+            });
+        }
     }
 
     private void setupEqualizerUI(View view) {
         View controls = view.findViewById(R.id.layout_eq_controls);
         View placeholder = view.findViewById(R.id.tv_no_session);
         
-        AudioEffectManager audioManager = playbackService.getAudioEffectManager();
-        if (audioManager == null) {
-            if (controls != null) controls.setVisibility(View.GONE);
-            if (placeholder != null) placeholder.setVisibility(View.VISIBLE);
-            return;
-        }
+        AudioEffectManager audioManager = (playbackService != null) ? playbackService.getAudioEffectManager() : null;
         
         if (controls != null) controls.setVisibility(View.VISIBLE);
         if (placeholder != null) placeholder.setVisibility(View.GONE);
+
+        if (audioManager == null) return;
 
         // Update Preset Name
         TextView tvPreset = view.findViewById(R.id.tv_current_preset);
@@ -132,16 +138,6 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
             });
 
             bandsContainer.addView(bandView);
-        }
-        
-        // Handle Maximize
-        assert getView() != null;
-        View btnMaximize = getView().findViewById(R.id.btn_eq_maximize);
-        if (btnMaximize != null) {
-            btnMaximize.setOnClickListener(v -> {
-                com.tuhoang.silentpipe.ui.main.AdvancedEqActivity.start(requireContext());
-                dismiss();
-            });
         }
     }
 

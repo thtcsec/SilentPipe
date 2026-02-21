@@ -169,4 +169,7 @@
     <string name="btn_clear">Xóa</string>
     <string name="btn_copy_all">Chép tất cả</string>
     <string name="btn_close">Đóng</string>
+    <string name="pref_visualizer_style">Kiểu sóng nhạc</string>
+    <string name="visualizer_style_waveform">Dạng sóng</string>
+    <string name="visualizer_style_bars">Thanh phổ</string>
 </resources>

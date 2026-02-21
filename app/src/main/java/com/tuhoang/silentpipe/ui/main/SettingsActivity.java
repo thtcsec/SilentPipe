@@ -54,6 +54,10 @@ public class SettingsActivity extends AppCompatActivity {
         setupShortcuts();
         setupAudioSettings();
         setupAbout();
+        
+        updateThemeSummary();
+        updateLanguageSummary();
+        updateVisualizerStyleSummary();
     }
 
     private void setupToolbar() {
@@ -63,8 +67,8 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void setupPermissions() {
-        SwitchMaterial switchNotif = findViewById(R.id.switch_notification_permission);
-        SwitchMaterial switchMic = findViewById(R.id.switch_microphone_permission);
+        final SwitchMaterial switchNotif = findViewById(R.id.switch_notification_permission);
+        final SwitchMaterial switchMic = findViewById(R.id.switch_microphone_permission);
 
         // Check current status
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -93,27 +97,22 @@ public class SettingsActivity extends AppCompatActivity {
             }
         );
 
-        // Listeners
         switchNotif.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    requestNotificationPermissionLauncher.launch(
-                            Manifest.permission.POST_NOTIFICATIONS);
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+                    }
                 }
-            } else {
-                // Cannot revoke programmatically, guide user to settings? For now just UI toggle.
-                Toast.makeText(this, getString(R.string.revoke_permission_hint), Toast.LENGTH_LONG).show();
-                switchNotif.setChecked(true); // Revert
             }
+            // If turning OFF, we just let the UI reflect it. We can't revoke system rights anyway.
         });
 
-        switchMic.setOnClickListener(v -> {
-            if (switchMic.isChecked()) {
-                requestMicPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO);
-            } else {
-                  Toast.makeText(this, getString(R.string.revoke_permission_hint), Toast.LENGTH_LONG).show();
-                 switchMic.setChecked(true); // Revert
-                //openAppSettings();
+        switchMic.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                    requestMicPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO);
+                }
             }
         });
     }
@@ -151,6 +150,12 @@ public class SettingsActivity extends AppCompatActivity {
                 prefs.edit().putBoolean("pref_show_visualizer", isChecked).apply();
             });
         }
+
+        // Layout for Visualizer Style
+        android.view.View btnVizStyle = findViewById(R.id.btn_visualizer_style);
+        if (btnVizStyle != null) {
+            btnVizStyle.setOnClickListener(v -> showVisualizerStyleDialog());
+        }
     }
     private void openAppSettings() {
         Intent intent = new Intent(
@@ -174,11 +179,27 @@ public class SettingsActivity extends AppCompatActivity {
                 else if (which == 2) mode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES;
                 
                 androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(mode);
+                updateThemeSummary();
                 dialog.dismiss();
             })
             .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show();
     }
+
+    private void updateThemeSummary() {
+        TextView tvTheme = findViewById(R.id.tv_theme_val);
+        if (tvTheme == null) return;
+        
+        int currentMode = androidx.appcompat.app.AppCompatDelegate.getDefaultNightMode();
+        if (currentMode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO) {
+            tvTheme.setText(R.string.theme_light);
+        } else if (currentMode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES) {
+            tvTheme.setText(R.string.theme_dark);
+        } else {
+            tvTheme.setText(R.string.theme_system);
+        }
+    }
+
 
     private void showLanguageDialog() {
         String[] languages = {"English", "Tiếng Việt"};
@@ -198,14 +219,32 @@ public class SettingsActivity extends AppCompatActivity {
                 if (which < codes.length) {
                     androidx.core.os.LocaleListCompat appLocale = androidx.core.os.LocaleListCompat.forLanguageTags(codes[which]);
                     androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(appLocale);
-                    // Force refresh activity to apply immediately? 
-                    // setApplicationLocales usually triggers recreate() but sometimes it's sluggish
+                    updateLanguageSummary();
                 }
                 dialog.dismiss();
             })
             .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show();
     }
+
+    private void updateLanguageSummary() {
+        TextView tvLang = findViewById(R.id.tv_language_val);
+        if (tvLang == null) return;
+        
+        androidx.core.os.LocaleListCompat currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales();
+        if (!currentLocales.isEmpty()) {
+            String primaryLocale = currentLocales.get(0).getLanguage();
+            if ("vi".equals(primaryLocale)) {
+                tvLang.setText(R.string.vietnamese);
+            } else {
+                tvLang.setText(R.string.english);
+            }
+        } else {
+            // Default to English if not set
+            tvLang.setText(R.string.english);
+        }
+    }
+
 
     private void setupCacheCleaning() {
         View btnCleanCache = findViewById(R.id.btn_clean_cache);
@@ -358,14 +397,9 @@ public class SettingsActivity extends AppCompatActivity {
     private void setupAudioSettings() {
         // Equalizer
         findViewById(R.id.btn_equalizer).setOnClickListener(v -> {
-             PlaybackService service = PlaybackService.instance;
-             if (service != null) {
-                 EqualizerFragment eqFragment = new EqualizerFragment();
-                 eqFragment.setPlaybackService(service);
-                 eqFragment.show(getSupportFragmentManager(), "Equalizer");
-             } else {
-                 Toast.makeText(this, "Play something first to enable Equalizer", Toast.LENGTH_SHORT).show();
-             }
+             EqualizerFragment eqFragment = new EqualizerFragment();
+             // Fragment will fetch instance itself if null
+             eqFragment.show(getSupportFragmentManager(), "Equalizer");
         });
 
         // HQ Audio
@@ -514,5 +548,32 @@ public class SettingsActivity extends AppCompatActivity {
                  Toast.makeText(this, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show();
             })
             .show();
+    }
+
+    private void showVisualizerStyleDialog() {
+        String[] styles = {getString(R.string.visualizer_style_waveform), getString(R.string.visualizer_style_bars)};
+        int checkedItem = prefs.getInt("pref_visualizer_style", 0);
+
+        new AlertDialog.Builder(this)
+            .setTitle(getString(R.string.pref_visualizer_style))
+            .setSingleChoiceItems(styles, checkedItem, (dialog, which) -> {
+                prefs.edit().putInt("pref_visualizer_style", which).apply();
+                updateVisualizerStyleSummary();
+                dialog.dismiss();
+            })
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
+            .show();
+    }
+
+    private void updateVisualizerStyleSummary() {
+        TextView tvViz = findViewById(R.id.tv_visualizer_style_val);
+        if (tvViz == null) return;
+        
+        int styleIndex = prefs.getInt("pref_visualizer_style", 0);
+        if (styleIndex == 1) {
+            tvViz.setText(R.string.visualizer_style_bars);
+        } else {
+            tvViz.setText(R.string.visualizer_style_waveform);
+        }
     }
 }

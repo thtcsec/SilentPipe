@@ -168,4 +168,7 @@
     <string name="btn_clear">Clear</string>
     <string name="btn_copy_all">Copy All</string>
     <string name="btn_close">Close</string>
+    <string name="pref_visualizer_style">Visualizer Style</string>
+    <string name="visualizer_style_waveform">Waveform</string>
+    <string name="visualizer_style_bars">Bars</string>
 </resources>

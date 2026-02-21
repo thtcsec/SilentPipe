@@ -19,6 +19,9 @@ public class VisualizerView extends View {
     private int mSpectrumNum = 48;
     private Visualizer mVisualizer;
 
+    public enum VisualizerStyle { WAVEFORM, BARS }
+    private VisualizerStyle mStyle = VisualizerStyle.WAVEFORM;
+
     public VisualizerView(Context context) {
         super(context);
         init();
@@ -39,6 +42,7 @@ public class VisualizerView extends View {
         mForePaint.setStrokeWidth(8f);
         mForePaint.setAntiAlias(true);
         mForePaint.setColor(Color.WHITE); 
+        mForePaint.setStrokeCap(Paint.Cap.ROUND);
     }
 
     public void updateVisualizer(byte[] bytes) {
@@ -50,52 +54,56 @@ public class VisualizerView extends View {
         mSpectrumNum = num;
     }
 
+    public void setStyle(VisualizerStyle style) {
+        this.mStyle = style;
+        invalidate();
+    }
+
+    public void setColor(int color) {
+        mForePaint.setColor(color);
+        invalidate();
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (mBytes == null) {
-            return;
-        }
+        if (mBytes == null) return;
 
+        if (mStyle == VisualizerStyle.BARS) {
+            drawBars(canvas);
+        } else {
+            drawWaveform(canvas);
+        }
+    }
+
+    private void drawWaveform(Canvas canvas) {
         if (mPoints == null || mPoints.length < mBytes.length * 4) {
             mPoints = new float[mBytes.length * 4];
         }
-
-        mRect.set(0, 0, getWidth(), getHeight());
-
-        // Simple Waveform or FFT? 
-        // If Waveform: bytes are signed 8-bit (-128 to 127)
-        // If FFT: bytes are magnitude.
-        
-        // Assuming Waveform for simplicity first, or FFT if we configure Visualizer that way.
-        // Let's assume FFT for bars.
-        
-        // Draw logic for simple bars (using slight hack for waveform data to look like bars if needed, but FFT is better)
-        // For now, let's just draw lines connecting points (Waveform) which is safer default
-        // Or specific Bar logic.
-        
-        // Let's attempt simple Waveform first as it's robust. 
-        // If user wants "Sóng nhạc" (Music Wave), bars are usually expected.
-        
-        // Logic for Bars from Waveform data (approximate):
-        // Divide width into mSpectrumNum chunks.
-        // Average amplitude in each chunk.
-        
-        int width = getWidth();
-        int height = getHeight();
-        int baseLine = height / 2;
-        
-        // Draw standard waveform
         for (int i = 0; i < mBytes.length - 1; i++) {
-            mPoints[i * 4] = mRect.width() * i / (float) (mBytes.length - 1);
-            mPoints[i * 4 + 1] = mRect.height() / 2 + ((byte) (mBytes[i] + 128)) * (mRect.height() / 2) / 128;
-            mPoints[i * 4 + 2] = mRect.width() * (i + 1) / (float) (mBytes.length - 1);
-            mPoints[i * 4 + 3] = mRect.height() / 2 + ((byte) (mBytes[i + 1] + 128)) * (mRect.height() / 2) / 128;
+            mPoints[i * 4] = getWidth() * i / (float) (mBytes.length - 1);
+            mPoints[i * 4 + 1] = getHeight() / 2f + ((byte) (mBytes[i] + 128)) * (getHeight() / 2f) / 128f;
+            mPoints[i * 4 + 2] = getWidth() * (i + 1) / (float) (mBytes.length - 1);
+            mPoints[i * 4 + 3] = getHeight() / 2f + ((byte) (mBytes[i + 1] + 128)) * (getHeight() / 2f) / 128f;
         }
         canvas.drawLines(mPoints, mForePaint);
     }
+
+    private void drawBars(Canvas canvas) {
+        int width = getWidth();
+        int height = getHeight();
+        float barWidth = (float) width / mSpectrumNum;
+        
+        for (int i = 0; i < mSpectrumNum; i++) {
+            int byteIndex = (int) ((float) i / mSpectrumNum * mBytes.length);
+            float amplitude = ((byte) (mBytes[byteIndex] + 128)) / 128f; // 0.0 to 2.0
+            float barHeight = Math.abs(amplitude - 1.0f) * height; 
+            
+            float x = i * barWidth + barWidth / 2f;
+            canvas.drawLine(x, height / 2f - barHeight / 2f, x, height / 2f + barHeight / 2f, mForePaint);
+        }
+    }
     
-    // Helper to link with ExoPlayer/MediaPlayer audio session
     public void link(int audioSessionId) {
         try {
             if (mVisualizer != null) {
@@ -112,7 +120,6 @@ public class VisualizerView extends View {
 
                 @Override
                 public void onFftDataCapture(Visualizer visualizer, byte[] bytes, int samplingRate) {
-                    // updateVisualizer(bytes); 
                 }
             };
 

@@ -70,6 +70,7 @@
                             app:tint="?attr/colorPrimary" />
 
                         <TextView
+                            android:id="@+id/tv_theme_val"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -136,6 +137,7 @@
                             app:tint="?attr/colorPrimary" />
 
                         <TextView
+                            android:id="@+id/tv_language_val"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -213,6 +215,43 @@
                             android:id="@+id/switch_show_visualizer"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                    
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
+
+                    <!-- Visualizer Style -->
+                    <LinearLayout
+                        android:id="@+id/btn_visualizer_style"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_menu_edit"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:id="@+id/tv_visualizer_style_val"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/pref_visualizer_style"
+                            android:textSize="16sp"
+                            android:textColor="?attr/colorOnSurface"
+                            android:layout_marginStart="16dp"/>
+                            
+                        <ImageView
+                             android:layout_width="24dp"
+                             android:layout_height="24dp"
+                             android:src="@android:drawable/ic_media_play"
+                             app:tint="?attr/colorOnSurfaceVariant"
+                             android:rotation="90"
+                             android:alpha="0.5"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

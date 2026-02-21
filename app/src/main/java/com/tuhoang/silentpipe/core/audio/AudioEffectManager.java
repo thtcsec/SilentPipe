@@ -157,9 +157,8 @@ public class AudioEffectManager {
     }
 
     public short getNumberOfBands() {
-        // Fallback to Saved if equalizer is null? No, we don't know bands count of device without equalizer instance.
-        // Assuming we need equalizer instance to know bands.
-        return equalizer != null ? equalizer.getNumberOfBands() : 0;
+        if (equalizer != null) return equalizer.getNumberOfBands();
+        return (short) (savedBandLevels != null ? savedBandLevels.length : 5); // Default to 5 if unknown
     }
 
     public short[] getBandLevelRange() {
@@ -206,6 +205,18 @@ public class AudioEffectManager {
             for (short i = 0; i < numberOfPresets; i++) {
                 presets.add(equalizer.getPresetName(i));
             }
+        } else {
+            // Default presets if EQ not available
+            presets.add("Normal");
+            presets.add("Classical");
+            presets.add("Dance");
+            presets.add("Flat");
+            presets.add("Folk");
+            presets.add("Heavy Metal");
+            presets.add("Hip Hop");
+            presets.add("Jazz");
+            presets.add("Pop");
+            presets.add("Rock");
         }
         presets.add(context.getString(R.string.eq_custom));
         return presets;

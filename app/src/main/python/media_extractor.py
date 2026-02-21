@@ -130,7 +130,7 @@ def _extract_tiktok_manual(url):
              if not title: title = f"TikTok Audio {int(time.time())}"
              
              return {
-                "title": title,
+                "title": _clean_tiktok_title(title, html),
                 "duration": 0,
                 "thumbnail": "",
                 "url": audio_url,
@@ -144,6 +144,32 @@ def _extract_tiktok_manual(url):
     except Exception as e:
         print(f"DEBUG: Manual extraction error: {e}")
         return {"error": f"Lỗi lấy nhạc TikTok: {str(e)}"}
+
+def _clean_tiktok_title(title, html):
+    """
+    Cleans TikTok's generic 'Make Your Day' titles and falls back to description.
+    """
+    generic_patterns = ["TikTok - Make Your Day", "TikTok", "TikTok Audio", "Video"]
+    
+    is_generic = any(p == title for p in generic_patterns) or not title
+    
+    if is_generic:
+        # Try og:description
+        import re
+        desc_match = re.search(r'<meta property="og:description" content="(.*?)"', html)
+        if desc_match:
+            desc = desc_match.group(1).strip()
+            # TikTok descriptions often have " | TikTok" at the end
+            if " | " in desc:
+                desc = desc.split(" | ")[0]
+            if desc and "on TikTok" not in desc:
+                return desc
+                
+    # If still generic or we have a title but it's just 'TikTok', try to keep it cleaner
+    if title:
+        return title.replace(" | TikTok", "").replace("TikTok - Make Your Day", "").strip() or "TikTok Audio"
+        
+    return "TikTok Audio"
 
 def extract_info(url, prefer_hq=False, cookie_str=None, show_video=False):
     if IMPORT_ERROR:
@@ -202,12 +228,21 @@ def extract_info(url, prefer_hq=False, cookie_str=None, show_video=False):
                 if not stream_url:
                     raise Exception("No URL found by yt-dlp")
 
+                title = info.get("title", "Unknown Title")
+                if "tiktok.com" in url or "tiktok" in info.get("extractor", "").lower():
+                    # Even with yt-dlp, check for generic titles
+                    if "TikTok" in title or "Video" == title:
+                         # Attempt to find a better title in description
+                         desc = info.get("description", "")
+                         if desc and len(desc) > 5 and "TikTok" not in desc[:20]:
+                             title = desc.split("\n")[0][:100]
+
                 source_info = "Source: YouTube"
                 if "tiktok.com" in url or "tiktok" in info.get("extractor", "").lower():
                     source_info = "Source: TikTok"
 
                 return {
-                    "title": info.get("title", "Unknown Title"),
+                    "title": title,
                     "duration": info.get("duration", 0),
                     "thumbnail": info.get("thumbnail", ""),
                     "url": stream_url,

@@ -56,16 +56,10 @@ public class AdvancedEqActivity extends AppCompatActivity {
 
     private void setupEqualizerUI() {
         PlaybackService service = PlaybackService.instance;
-        if (service == null) {
-            Toast.makeText(this, getString(R.string.err_service_not_bound), Toast.LENGTH_SHORT).show();
-            // Optional: bind service here if strictly needed, but usually Player is running when accessing EQ
-            return;
-        }
+        final AudioEffectManager audioManager = (service != null) ? service.getAudioEffectManager() : null;
 
-        AudioEffectManager audioManager = service.getAudioEffectManager();
         if (audioManager == null) {
-             Toast.makeText(this, getString(R.string.err_audio_manager_unavailable), Toast.LENGTH_SHORT).show();
-             return;
+             Toast.makeText(this, "Audio session inactive - using cached settings", Toast.LENGTH_SHORT).show();
         }
 
         // Switch
