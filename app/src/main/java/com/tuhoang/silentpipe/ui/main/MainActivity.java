@@ -197,6 +197,16 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         }
 
         makeDraggable(findViewById(R.id.fab_stack));
+
+        TextView tvFooter = findViewById(R.id.tv_version_footer);
+        if (tvFooter != null) {
+            try {
+                String version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+                tvFooter.setText(getString(R.string.footer_version, version));
+            } catch (Exception e) {
+                tvFooter.setText(getString(R.string.footer_version, "1.0"));
+            }
+        }
     }
 
     // Draggable Logic (Keep here or move later if complex)
@@ -249,15 +259,9 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 return false;
             }
         };
-
-        TextView tvFooter = findViewById(R.id.tv_version_footer);
-        if (tvFooter != null) {
-            try {
-                String version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-                tvFooter.setText(getString(R.string.footer_version, version));
-            } catch (Exception e) {
-                tvFooter.setText(getString(R.string.footer_version, "1.0"));
-            }
+        container.setOnTouchListener(dragListener);
+        for (int i = 0; i < group.getChildCount(); i++) {
+            group.getChildAt(i).setOnTouchListener(dragListener);
         }
     }
 

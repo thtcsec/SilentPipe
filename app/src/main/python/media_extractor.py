@@ -164,7 +164,10 @@ def _clean_tiktok_title(title, html):
             # TikTok descriptions often have " | TikTok" at the end, or similar patterns
             if " | " in desc:
                 desc = desc.split(" | ")[0]
-            if desc and "on tiktok" not in desc.lower():
+            # Strip "on TikTok" suffix if it exists
+            import re as _re
+            desc = _re.sub(r'(?i)\s*on TikTok.*?$', '', desc).strip()
+            if desc and len(desc) > 3:
                 return desc
                 
     # If still generic or we have a title but it's just 'TikTok', try to keep it cleaner
