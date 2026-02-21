@@ -285,6 +285,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         View bottomPlayer = findViewById(R.id.layout_bottom_player);
         SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
         boolean useBottomPlayer = prefs.getBoolean("pref_use_bottom_player", false);
+        boolean showVisualizer = prefs.getBoolean("pref_show_visualizer", false);
 
         if (show) {
             restoreBtn.setVisibility(View.GONE);
@@ -293,9 +294,18 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             
             playerView.setVisibility(View.VISIBLE);
             playerView.animate().alpha(1f).setDuration(200).start();
+            if (visualizerView != null && showVisualizer) {
+                 visualizerView.setVisibility(View.VISIBLE);
+                 visualizerView.animate().alpha(1f).setDuration(200).start();
+            }
+            
             for (View view : fabChildren) view.setVisibility(View.VISIBLE);
         } else {
             playerView.animate().alpha(0f).setDuration(200).withEndAction(() -> playerView.setVisibility(View.GONE)).start();
+            if (visualizerView != null) {
+                 visualizerView.animate().alpha(0f).setDuration(200).withEndAction(() -> visualizerView.setVisibility(View.GONE)).start();
+            }
+            
             for (View view : fabChildren) view.setVisibility(View.GONE);
             
             if (useBottomPlayer) {
@@ -304,6 +314,14 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 
                 if (bottomPlayer != null) {
                     bottomPlayer.setVisibility(View.VISIBLE);
+                    bottomPlayer.setTranslationY(100f);
+                    bottomPlayer.setAlpha(0f);
+                    bottomPlayer.animate()
+                            .translationY(0f)
+                            .alpha(1f)
+                            .setDuration(250)
+                            .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                            .start();
                     updateBottomPlayerUI();
                 }
             } else {
@@ -312,6 +330,8 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 
                 if (nowPlayingCard != null && currentMediaItem != null) {
                     nowPlayingCard.setVisibility(View.VISIBLE);
+                    nowPlayingCard.setAlpha(0f);
+                    nowPlayingCard.animate().alpha(1f).setDuration(250).start();
                     if (tvNowPlaying != null) {
                         tvNowPlaying.setSelected(true); // Trigger marquee
                     }

@@ -115,7 +115,7 @@
     <string name="nav_audio_streamer">Audio Streamer</string>
     
     <!-- Settings Activity Extras -->
-    <string name="pref_mini_player">Bottom Mini Player</string>
+    <string name="pref_mini_player">Mini Player: Bottom Bar (Instead of Floating)</string>
     <string name="pref_show_video_exp">Show Video (Experimental)</string>
     <string name="pref_visualizer_label">Audio Visualizer</string>
     <string name="pref_calculating">Calculating...</string>

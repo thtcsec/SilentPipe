@@ -116,7 +116,7 @@
     <string name="nav_audio_streamer">Trình phát âm thanh</string>
     
     <!-- Settings Activity Extras -->
-    <string name="pref_mini_player">Trình phát thu nhỏ ở dưới</string>
+    <string name="pref_mini_player">Kiểu thu nhỏ: Thanh ngang dưới cùng (Thay cho Cụm nút nổi)</string>
     <string name="pref_show_video_exp">Hiển thị Video (Thử nghiệm)</string>
     <string name="pref_visualizer_label">Sóng nhạc (Visualizer)</string>
     <string name="pref_calculating">Đang tính toán...</string>
