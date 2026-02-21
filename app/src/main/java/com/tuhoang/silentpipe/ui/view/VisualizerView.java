@@ -37,12 +37,29 @@ public class VisualizerView extends View {
         init();
     }
 
+    private android.graphics.Path mPath = new android.graphics.Path();
+    private android.graphics.LinearGradient mGradient;
+
     private void init() {
         mBytes = null;
-        mForePaint.setStrokeWidth(8f);
+        mForePaint.setStrokeWidth(12f);
         mForePaint.setAntiAlias(true);
-        mForePaint.setColor(Color.WHITE); 
+        mForePaint.setStyle(Paint.Style.STROKE);
         mForePaint.setStrokeCap(Paint.Cap.ROUND);
+        mForePaint.setStrokeJoin(Paint.Join.ROUND);
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        // Create a vibrant gradient sweeping across the view
+        mGradient = new android.graphics.LinearGradient(
+                0, 0, w, h,
+                new int[]{Color.parseColor("#8E2DE2"), Color.parseColor("#4A00E0"), Color.parseColor("#00C9FF"), Color.parseColor("#92FE9D")},
+                null,
+                android.graphics.Shader.TileMode.CLAMP
+        );
+        mForePaint.setShader(mGradient);
     }
 
     public void updateVisualizer(byte[] bytes) {
@@ -56,11 +73,18 @@ public class VisualizerView extends View {
 
     public void setStyle(VisualizerStyle style) {
         this.mStyle = style;
+        // Adjust paint style based on visualizer mode
+        if (style == VisualizerStyle.WAVEFORM) {
+            mForePaint.setStyle(Paint.Style.STROKE);
+            mForePaint.setStrokeWidth(6f);
+        } else {
+            mForePaint.setStyle(Paint.Style.FILL);
+        }
         invalidate();
     }
 
     public void setColor(int color) {
-        mForePaint.setColor(color);
+        // Gradient overrides color, but keep method for compatibility if needed later
         invalidate();
     }
 
@@ -77,30 +101,58 @@ public class VisualizerView extends View {
     }
 
     private void drawWaveform(Canvas canvas) {
-        if (mPoints == null || mPoints.length < mBytes.length * 4) {
-            mPoints = new float[mBytes.length * 4];
+        mPath.reset();
+        int width = getWidth();
+        int height = getHeight();
+        float centerY = height / 2f;
+        
+        mPath.moveTo(0, centerY);
+        
+        // Use a smoothing factor to create a bezier-like wave
+        int step = Math.max(1, mBytes.length / 64);
+        
+        for (int i = 0; i < mBytes.length - step; i += step) {
+            float x1 = width * i / (float) (mBytes.length - 1);
+            float y1 = centerY + ((byte) (mBytes[i] + 128)) * (centerY) / 128f;
+            
+            float x2 = width * (i + step) / (float) (mBytes.length - 1);
+            float y2 = centerY + ((byte) (mBytes[i + step] + 128)) * (centerY) / 128f;
+            
+            float cx = (x1 + x2) / 2f;
+            float cy = (y1 + y2) / 2f;
+            
+            mPath.quadTo(x1, y1, cx, cy);
         }
-        for (int i = 0; i < mBytes.length - 1; i++) {
-            mPoints[i * 4] = getWidth() * i / (float) (mBytes.length - 1);
-            mPoints[i * 4 + 1] = getHeight() / 2f + ((byte) (mBytes[i] + 128)) * (getHeight() / 2f) / 128f;
-            mPoints[i * 4 + 2] = getWidth() * (i + 1) / (float) (mBytes.length - 1);
-            mPoints[i * 4 + 3] = getHeight() / 2f + ((byte) (mBytes[i + 1] + 128)) * (getHeight() / 2f) / 128f;
-        }
-        canvas.drawLines(mPoints, mForePaint);
+        
+        mPath.lineTo(width, centerY);
+        canvas.drawPath(mPath, mForePaint);
     }
 
     private void drawBars(Canvas canvas) {
         int width = getWidth();
         int height = getHeight();
-        float barWidth = (float) width / mSpectrumNum;
+        
+        // Dynamically adjust bar width and spacing
+        float totalBarWidth = (float) width / mSpectrumNum;
+        float barWidth = totalBarWidth * 0.6f; 
+        float spacing = totalBarWidth * 0.4f;
         
         for (int i = 0; i < mSpectrumNum; i++) {
+            // Read amplitude data
             int byteIndex = (int) ((float) i / mSpectrumNum * mBytes.length);
-            float amplitude = ((byte) (mBytes[byteIndex] + 128)) / 128f; // 0.0 to 2.0
-            float barHeight = Math.abs(amplitude - 1.0f) * height; 
+            float amplitude = ((byte) (mBytes[byteIndex] + 128)) / 128f; 
             
-            float x = i * barWidth + barWidth / 2f;
-            canvas.drawLine(x, height / 2f - barHeight / 2f, x, height / 2f + barHeight / 2f, mForePaint);
+            // Exaggerate amplitude for better visual effect and smooth out minimum height
+            float rawHeight = Math.abs(amplitude - 1.0f) * height * 1.5f;
+            float barHeight = Math.max(rawHeight, 10f); 
+            
+            float x = i * totalBarWidth + spacing / 2f;
+            
+            float top = height / 2f - barHeight / 2f;
+            float bottom = height / 2f + barHeight / 2f;
+            
+            // Draw a rounded rectangle for a premium DJ-deck look
+            canvas.drawRoundRect(x, top, x + barWidth, bottom, barWidth / 2f, barWidth / 2f, mForePaint);
         }
     }
     

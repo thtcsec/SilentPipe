@@ -188,7 +188,7 @@ def extract_info(url, prefer_hq=False, cookie_str=None, show_video=False):
     # Normal yt-dlp logic
     # Based on old working version (simple is better)
     if show_video:
-        format_selection = 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
+        format_selection = 'best[ext=mp4]/best'
     else:
         format_selection = 'bestaudio/best' if prefer_hq else 'worst[ext=m4a]/worst'
     
