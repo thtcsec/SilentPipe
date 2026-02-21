@@ -135,16 +135,18 @@ public class AudioEffectManager {
     }
 
     public void setBandLevel(short band, short level) {
+        if (savedBandLevels == null || savedBandLevels.length != getNumberOfBands()) {
+             savedBandLevels = new short[getNumberOfBands()];
+        }
+        if (band >= 0 && band < savedBandLevels.length) {
+             savedBandLevels[band] = level;
+        }
+        savedPreset = -1; // Custom overrides preset
+        savePrefs();
+
         if (equalizer != null) {
             try {
                 equalizer.setBandLevel(band, level);
-                // Update saved state
-                if (savedBandLevels == null || savedBandLevels.length != equalizer.getNumberOfBands()) {
-                    savedBandLevels = new short[equalizer.getNumberOfBands()];
-                }
-                savedBandLevels[band] = level;
-                savedPreset = -1; // Custom overrides preset
-                savePrefs();
             } catch (Exception e) {
                 Log.e(TAG, "Error setting band level", e);
             }
@@ -152,7 +154,6 @@ public class AudioEffectManager {
     }
 
     public short getBandLevel(short band) {
-        // Return saved if available to be consistent, or read actual
         return equalizer != null ? equalizer.getBandLevel(band) : (savedBandLevels != null && band < savedBandLevels.length ? savedBandLevels[band] : 0);
     }
 
@@ -166,7 +167,10 @@ public class AudioEffectManager {
     }
 
     public int getCenterFreq(short band) {
-        return equalizer != null ? equalizer.getCenterFreq(band) : 0;
+        if (equalizer != null) return equalizer.getCenterFreq(band);
+        // Default frequencies for a standard 5-band EQ
+        int[] defaultFreqs = {60000, 230000, 910000, 3600000, 14000000};
+        return (band >= 0 && band < defaultFreqs.length) ? defaultFreqs[band] : 0;
     }
 
     public void setBassBoostStrength(short strength) {
@@ -223,22 +227,22 @@ public class AudioEffectManager {
     }
 
     public void usePreset(short presetIndex) {
-        if (equalizer != null) {
-            short numberOfPresets = equalizer.getNumberOfPresets();
-            if (presetIndex < numberOfPresets && presetIndex >= 0) {
-                 savedPreset = presetIndex;
-                 savedBandLevels = null; // Reset custom levels since we are using a preset
+        short numberOfPresets = (equalizer != null) ? equalizer.getNumberOfPresets() : 10;
+        if (presetIndex < numberOfPresets && presetIndex >= 0) {
+             savedPreset = presetIndex;
+             savedBandLevels = null; // Reset custom levels since we are using a preset
+             if (equalizer != null) {
                  try {
                     equalizer.usePreset(presetIndex);
                  } catch (Exception e) {
                     Log.e(TAG, "Error using preset", e);
                  }
-            } else {
-                // Must be "Custom"
-                savedPreset = -1; 
-            }
-            savePrefs();
+             }
+        } else {
+            // Must be "Custom"
+            savedPreset = -1; 
         }
+        savePrefs();
     }
 
     public short getCurrentPreset() {

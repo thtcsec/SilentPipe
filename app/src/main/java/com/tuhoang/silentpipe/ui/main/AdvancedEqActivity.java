@@ -56,11 +56,14 @@ public class AdvancedEqActivity extends AppCompatActivity {
 
     private void setupEqualizerUI() {
         PlaybackService service = PlaybackService.instance;
-        final AudioEffectManager audioManager = (service != null) ? service.getAudioEffectManager() : null;
+        AudioEffectManager manager = (service != null) ? service.getAudioEffectManager() : null;
 
-        if (audioManager == null) {
-             Toast.makeText(this, "Audio session inactive - using cached settings", Toast.LENGTH_SHORT).show();
+        if (manager == null) {
+             // Create a fallback manager to load cached presets UI
+             manager = new AudioEffectManager(this, 0);
         }
+        
+        final AudioEffectManager audioManager = manager;
 
         // Switch
         switchEnable.setChecked(audioManager.isEnabled());

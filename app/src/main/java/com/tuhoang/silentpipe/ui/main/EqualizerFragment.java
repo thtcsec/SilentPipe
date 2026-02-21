@@ -64,12 +64,16 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
         View controls = view.findViewById(R.id.layout_eq_controls);
         View placeholder = view.findViewById(R.id.tv_no_session);
         
-        AudioEffectManager audioManager = (playbackService != null) ? playbackService.getAudioEffectManager() : null;
+        AudioEffectManager manager = (playbackService != null) ? playbackService.getAudioEffectManager() : null;
         
         if (controls != null) controls.setVisibility(View.VISIBLE);
         if (placeholder != null) placeholder.setVisibility(View.GONE);
 
-        if (audioManager == null) return;
+        if (manager == null) {
+            manager = new AudioEffectManager(requireContext(), 0);
+        }
+        
+        final AudioEffectManager audioManager = manager;
 
         // Update Preset Name
         TextView tvPreset = view.findViewById(R.id.tv_current_preset);
