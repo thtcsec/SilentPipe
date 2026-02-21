@@ -61,6 +61,9 @@ public class AudioEffectManager {
             
             bassBoost = new BassBoost(0, audioSessionId);
             bassBoost.setEnabled(savedEnabled);
+
+            // Important: Restore state specifically for new active sessions
+            restoreState();
         } catch (Exception e) {
             Log.e(TAG, "Error initializing Audio Effects", e);
         }
@@ -159,7 +162,7 @@ public class AudioEffectManager {
 
     public short getNumberOfBands() {
         if (equalizer != null) return equalizer.getNumberOfBands();
-        return (short) (savedBandLevels != null ? savedBandLevels.length : 5); // Default to 5 if unknown
+        return (short) (savedBandLevels != null && savedBandLevels.length > 0 ? savedBandLevels.length : 5); // Default to 5 if unknown
     }
 
     public short[] getBandLevelRange() {

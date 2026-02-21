@@ -114,27 +114,29 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
             View bandView = LayoutInflater.from(getContext()).inflate(R.layout.item_eq_band, bandsContainer, false);
             
             TextView textFreq = bandView.findViewById(R.id.text_frequency);
+            TextView textLevel = bandView.findViewById(R.id.text_level);
             SeekBar seekLevel = bandView.findViewById(R.id.seek_bar_level);
 
             int centerFreq = audioManager.getCenterFreq(bandIndex);
             textFreq.setText(formatFreq(centerFreq));
-
-            // Setup SeekBar
-            // Range is (max - min). Progress needs to be shifted.
-            // If min = -1500, max = 1500. Range = 3000.
-            // visual progress 0 -> real -1500
-            // visual progress 1500 -> real 0
-            // visual progress 3000 -> real 1500
             
+            short currentLevel = audioManager.getBandLevel(bandIndex);
+            textLevel.setText((currentLevel / 100) + "dB");
+
             seekLevel.setMax(maxLevel - minLevel);
-            seekLevel.setProgress(audioManager.getBandLevel(bandIndex) - minLevel);
+            seekLevel.setProgress(currentLevel - minLevel);
 
             seekLevel.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    short level = (short) (progress + minLevel);
+                    textLevel.setText((level / 100) + "dB");
+                    
                     if (fromUser) {
-                        short level = (short) (progress + minLevel);
                         audioManager.setBandLevel(bandIndex, level);
+                        if (tvPreset != null) {
+                             tvPreset.setText(getString(R.string.eq_custom));
+                        }
                     }
                 }
                 @Override public void onStartTrackingTouch(SeekBar seekBar) {}

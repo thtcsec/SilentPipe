@@ -71,38 +71,43 @@
         android:textColor="#888888"
         android:visibility="gone" />
 
-    <LinearLayout
-        android:id="@+id/layout_eq_controls"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginBottom="16dp">
+        android:layout_height="wrap_content">
         
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/eq_bass_boost"
-            android:textColor="#AAAAAA"
-            android:textSize="12sp"/>
-            
-        <SeekBar
-            android:id="@+id/seek_bass_boost"
+        <LinearLayout
+            android:id="@+id/layout_eq_controls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="1000"/>
-    </LinearLayout>
+            android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/layout_bands_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/eq_bass_boost"
+                    android:textColor="#AAAAAA"
+                    android:textSize="12sp"/>
+                    
+                <SeekBar
+                    android:id="@+id/seek_bass_boost"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="1000"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_bands_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
 </LinearLayout>
