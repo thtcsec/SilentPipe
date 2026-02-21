@@ -42,6 +42,8 @@ import com.tuhoang.silentpipe.ui.view.VisualizerView;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements ClipboardHelper.Callback {
     private static final String TAG = "MainActivity";
@@ -58,20 +60,8 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     private NavigationHelper navigationHelper;
 
     private boolean ignoreNextClipboardCheck = false;
-    private final java.util.concurrent.ExecutorService executorService = java.util.concurrent.Executors.newFixedThreadPool(4);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(4);
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (ignoreNextClipboardCheck) {
-            ignoreNextClipboardCheck = false;
-        } else {
-            if (clipboardHelper != null) clipboardHelper.checkClipboard(true);
-        }
-        
-        updateSkipTimeUI();
-    }
-    
     private void updateSkipTimeUI() {
         if (playerView != null) {
             android.content.SharedPreferences prefsUI = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
@@ -100,8 +90,18 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 visualizerView.setStyle(vizStyleIndex == 1 ? 
                     com.tuhoang.silentpipe.ui.view.VisualizerView.VisualizerStyle.BARS : 
                     com.tuhoang.silentpipe.ui.view.VisualizerView.VisualizerStyle.WAVEFORM);
+                    
+                int vizColorIndex = vizPrefs.getInt("pref_visualizer_color", 0);
+                visualizerView.setColorTheme(vizColorIndex);
             }
         }
+        if (ignoreNextClipboardCheck) {
+            ignoreNextClipboardCheck = false;
+        } else {
+            if (clipboardHelper != null) clipboardHelper.checkClipboard(true);
+        }
+
+        updateSkipTimeUI();
     }
 
     @Override

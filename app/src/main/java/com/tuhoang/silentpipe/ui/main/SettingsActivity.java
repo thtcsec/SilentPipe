@@ -155,6 +155,14 @@ public class SettingsActivity extends AppCompatActivity {
         android.view.View btnVizStyle = findViewById(R.id.btn_visualizer_style);
         if (btnVizStyle != null) {
             btnVizStyle.setOnClickListener(v -> showVisualizerStyleDialog());
+            updateVisualizerStyleSummary();
+        }
+
+        // Layout for Visualizer Color
+        android.view.View btnVizColor = findViewById(R.id.btn_visualizer_color);
+        if (btnVizColor != null) {
+            btnVizColor.setOnClickListener(v -> showVisualizerColorDialog());
+            updateVisualizerColorSummary();
         }
     }
     private void openAppSettings() {
@@ -491,7 +499,7 @@ public class SettingsActivity extends AppCompatActivity {
         try {
             String version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             TextView tvAbout = findViewById(R.id.tv_about_content);
-            if (tvAbout != null) tvAbout.setText("SilentPipe v" + version + "\nAuthor: tuhoang / thtcsec");
+            if (tvAbout != null) tvAbout.setText(getString(R.string.pref_about_content, version));
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Package name not found", e);
         }
@@ -574,6 +582,37 @@ public class SettingsActivity extends AppCompatActivity {
             tvViz.setText(R.string.visualizer_style_bars);
         } else {
             tvViz.setText(R.string.visualizer_style_waveform);
+        }
+    }
+
+    private void showVisualizerColorDialog() {
+        String[] colors = {
+            getString(R.string.viz_color_cyberpunk),
+            getString(R.string.viz_color_ocean),
+            getString(R.string.viz_color_sunset),
+            getString(R.string.viz_color_forest)
+        };
+        int checkedItem = prefs.getInt("pref_visualizer_color", 0);
+
+        new AlertDialog.Builder(this)
+            .setTitle(getString(R.string.pref_visualizer_color))
+            .setSingleChoiceItems(colors, checkedItem, (dialog, which) -> {
+                prefs.edit().putInt("pref_visualizer_color", which).apply();
+                updateVisualizerColorSummary();
+                dialog.dismiss();
+            })
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
+            .show();
+    }
+
+    private void updateVisualizerColorSummary() {
+        TextView tvColor = findViewById(R.id.tv_visualizer_color_val);
+        if (tvColor == null) return;
+        
+        int colorIndex = prefs.getInt("pref_visualizer_color", 0);
+        int[] stringIds = {R.string.viz_color_cyberpunk, R.string.viz_color_ocean, R.string.viz_color_sunset, R.string.viz_color_forest};
+        if (colorIndex >= 0 && colorIndex < stringIds.length) {
+            tvColor.setText(stringIds[colorIndex]);
         }
     }
 }

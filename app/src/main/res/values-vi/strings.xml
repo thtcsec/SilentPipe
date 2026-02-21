@@ -32,7 +32,7 @@
     <string name="pref_audio">Âm thanh</string>
     <string name="pref_audio_equalizer">Bộ chỉnh âm / Tuning</string>
     <string name="pref_hq_audio">Ưu tiên YouTube Music (HQ)</string>
-    <string name="pref_skip_interval">Tua nhanh: %ds</string>
+    <string name="pref_skip_interval">Tua nhanh</string>
     <string name="pref_about">Thông tin</string>
     <string name="pref_about_content">SilentPipe v%s\nTác giả: Trịnh Hoàng Tú</string>
     <string name="pref_github">Xem trên GitHub</string>
@@ -170,6 +170,12 @@
     <string name="btn_copy_all">Chép tất cả</string>
     <string name="btn_close">Đóng</string>
     <string name="pref_visualizer_style">Kiểu sóng nhạc</string>
-    <string name="visualizer_style_waveform">Dạng sóng</string>
-    <string name="visualizer_style_bars">Thanh phổ</string>
+    <string name="visualizer_style_waveform">Sóng mềm (Waveform)</string>
+    <string name="visualizer_style_bars">Thanh cột (Bars)</string>
+    
+    <string name="pref_visualizer_color">Màu sắc sóng nhạc</string>
+    <string name="viz_color_cyberpunk">Cyberpunk (Tím - Hồng)</string>
+    <string name="viz_color_ocean">Đại dương (Xanh lục - Xanh thẳm)</string>
+    <string name="viz_color_sunset">Hoàng hôn (Đỏ - Vàng)</string>
+    <string name="viz_color_forest">Rừng rậm (Xanh lá - Vàng)</string>
 </resources>

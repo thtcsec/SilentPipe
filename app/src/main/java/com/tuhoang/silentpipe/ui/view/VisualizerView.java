@@ -39,6 +39,7 @@ public class VisualizerView extends View {
 
     private android.graphics.Path mPath = new android.graphics.Path();
     private android.graphics.LinearGradient mGradient;
+    private int mColorTheme = 0;
 
     private void init() {
         mBytes = null;
@@ -49,17 +50,49 @@ public class VisualizerView extends View {
         mForePaint.setStrokeJoin(Paint.Join.ROUND);
     }
 
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        // Create a vibrant gradient sweeping across the view
+    public void setColorTheme(int theme) {
+        if (this.mColorTheme != theme) {
+            this.mColorTheme = theme;
+            updateGradient();
+            invalidate();
+        }
+    }
+
+    private void updateGradient() {
+        int w = getWidth();
+        int h = getHeight();
+        if (w == 0 || h == 0) return;
+        
+        int[] colors;
+        switch (mColorTheme) {
+            case 1: // Ocean (Cyan - Blue)
+                colors = new int[]{Color.parseColor("#00C9FF"), Color.parseColor("#92FE9D"), Color.parseColor("#1CB5E0"), Color.parseColor("#000046")};
+                break;
+            case 2: // Sunset (Red - Yellow)
+                colors = new int[]{Color.parseColor("#FF512F"), Color.parseColor("#F09819"), Color.parseColor("#FFD200"), Color.parseColor("#F7971E")};
+                break;
+            case 3: // Forest (Green - Lime)
+                colors = new int[]{Color.parseColor("#11998e"), Color.parseColor("#38ef7d"), Color.parseColor("#DCE35B"), Color.parseColor("#45B649")};
+                break;
+            case 0: // Cyberpunk
+            default:
+                colors = new int[]{Color.parseColor("#8E2DE2"), Color.parseColor("#4A00E0"), Color.parseColor("#ff00cc"), Color.parseColor("#333399")};
+                break;
+        }
+        
         mGradient = new android.graphics.LinearGradient(
                 0, 0, w, h,
-                new int[]{Color.parseColor("#8E2DE2"), Color.parseColor("#4A00E0"), Color.parseColor("#00C9FF"), Color.parseColor("#92FE9D")},
+                colors,
                 null,
                 android.graphics.Shader.TileMode.CLAMP
         );
         mForePaint.setShader(mGradient);
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        updateGradient();
     }
 
     public void updateVisualizer(byte[] bytes) {

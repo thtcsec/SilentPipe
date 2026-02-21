@@ -31,7 +31,7 @@
     <string name="pref_audio">Audio</string>
     <string name="pref_audio_equalizer">Audio Equalizer / Tuning</string>
     <string name="pref_hq_audio">Prioritize YouTube Music (HQ)</string>
-    <string name="pref_skip_interval">Skip Interval: %ds</string>
+    <string name="pref_skip_interval">Skip Interval</string>
     <string name="pref_about">About</string>
     <string name="pref_about_content">SilentPipe v%s\nAuthor: Trinh Hoang Tu\nDeveloper: Trịnh Hoàng Tú</string>
     <string name="pref_github">View on GitHub</string>
@@ -169,6 +169,12 @@
     <string name="btn_copy_all">Copy All</string>
     <string name="btn_close">Close</string>
     <string name="pref_visualizer_style">Visualizer Style</string>
-    <string name="visualizer_style_waveform">Waveform</string>
-    <string name="visualizer_style_bars">Bars</string>
+    <string name="visualizer_style_waveform">Waveform (Smooth curves)</string>
+    <string name="visualizer_style_bars">Bars (Rounded DJs)</string>
+
+    <string name="pref_visualizer_color">Visualizer Color Theme</string>
+    <string name="viz_color_cyberpunk">Cyberpunk (Purple - Neon Pink)</string>
+    <string name="viz_color_ocean">Deep Ocean (Cyan - Blue)</string>
+    <string name="viz_color_sunset">Sunset (Red - Yellow)</string>
+    <string name="viz_color_forest">Forest (Green - Lime)</string>
 </resources>
