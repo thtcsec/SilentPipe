@@ -38,12 +38,16 @@ public class FavoritesFragment extends Fragment {
     }
 
     private void loadFavorites(View view) {
+        final android.content.Context context = getContext();
+        final androidx.fragment.app.FragmentActivity activity = getActivity();
+        if (context == null || activity == null) return;
+        
         new Thread(() -> {
-            AppDatabase db = AppDatabase.getDatabase(requireContext());
+            AppDatabase db = AppDatabase.getDatabase(context);
             
             List<FavoriteItem> items = db.favoriteDao().getAll();
             
-            requireActivity().runOnUiThread(() -> {
+            activity.runOnUiThread(() -> {
                 if (!isAdded() || getActivity() == null) return;
 
                 if (items.isEmpty()) {
@@ -75,10 +79,14 @@ public class FavoritesFragment extends Fragment {
                                     String newTitle = input.getText().toString().trim();
                                     if (!newTitle.isEmpty()) {
                                         item.title = newTitle;
+                                        final android.content.Context context = getContext();
+                                        final androidx.fragment.app.FragmentActivity activity = getActivity();
+                                        if (context == null || activity == null) return;
+                                        
                                         new Thread(() -> {
-                                            AppDatabase db = AppDatabase.getDatabase(requireContext());
+                                            AppDatabase db = AppDatabase.getDatabase(context);
                                             db.favoriteDao().update(item);
-                                            requireActivity().runOnUiThread(() -> {
+                                            activity.runOnUiThread(() -> {
                                                 if (!isAdded() || getActivity() == null) return;
                                                 loadFavorites(view);
                                             });
@@ -95,10 +103,14 @@ public class FavoritesFragment extends Fragment {
                                 .setTitle("Delete Favorite")
                                 .setMessage("Are you sure you want to delete this item?")
                                 .setPositiveButton("Delete", (dialog, which) -> {
+                                    final android.content.Context context = getContext();
+                                    final androidx.fragment.app.FragmentActivity activity = getActivity();
+                                    if (context == null || activity == null) return;
+                                    
                                     new Thread(() -> {
-                                        AppDatabase db = AppDatabase.getDatabase(requireContext());
+                                        AppDatabase db = AppDatabase.getDatabase(context);
                                         db.favoriteDao().delete(item);
-                                        requireActivity().runOnUiThread(() -> {
+                                        activity.runOnUiThread(() -> {
                                             if (!isAdded() || getActivity() == null) return;
                                             loadFavorites(view); // Reload list
                                         });

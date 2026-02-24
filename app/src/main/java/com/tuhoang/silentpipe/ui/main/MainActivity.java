@@ -707,6 +707,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             }
         });
         executorService.execute(() -> {
+            if (isFinishing() || isDestroyed()) return;
             try {
                 Python py = Python.getInstance();
                 PyObject module = py.getModule("media_extractor");
@@ -741,8 +742,11 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                     PyObject uploaderObj = result.callAttr("get", "uploader");
                     final String finalUploader = (uploaderObj != null) ? uploaderObj.toString() : getString(R.string.unknown_uploader);
                     final long duration = 0; 
+                    
+                    if (isFinishing() || isDestroyed()) return;
 
                     runOnUiThread(() -> {
+                        if (isFinishing() || isDestroyed()) return;
                         if (mediaController != null) {
                             try {
                                 MediaItem mediaItem = new MediaItem.Builder()
@@ -831,15 +835,21 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 } else if (errorObj != null && !errorObj.toString().equals("None")) {
                     String error = errorObj.toString();
                     com.tuhoang.silentpipe.core.manager.ErrorLogManager.getInstance(this).logError("Python", error);
-                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_python, error), Toast.LENGTH_LONG).show());
+                    if (!isFinishing() && !isDestroyed()) {
+                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_python, error), Toast.LENGTH_LONG).show());
+                    }
                 } else {
                     String rawResult = result.toString();
-                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, rawResult), Toast.LENGTH_LONG).show());
+                    if (!isFinishing() && !isDestroyed()) {
+                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, rawResult), Toast.LENGTH_LONG).show());
+                    }
                 }
             } catch (Throwable e) {
                 Log.e(TAG, "Critical Error in loadVideo", e);
-                com.tuhoang.silentpipe.core.manager.ErrorLogManager.getInstance(this).logError("MainActivity", "Critical: " + e.getMessage());
-                runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, e.getMessage()), Toast.LENGTH_LONG).show());
+                if (!isFinishing() && !isDestroyed()) {
+                    com.tuhoang.silentpipe.core.manager.ErrorLogManager.getInstance(this).logError("MainActivity", "Critical: " + e.getMessage());
+                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, e.getMessage()), Toast.LENGTH_LONG).show());
+                }
             }
         });
     }
