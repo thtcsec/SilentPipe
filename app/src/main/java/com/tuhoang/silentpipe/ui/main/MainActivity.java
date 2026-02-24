@@ -117,12 +117,6 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        
-        if (!Python.isStarted()) {
-            Python.start(new AndroidPlatform(this));
-        }
-
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
@@ -709,6 +703,11 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         executorService.execute(() -> {
             if (isFinishing() || isDestroyed()) return;
             try {
+                // Initialize Python in Background Thread with Global Application Context
+                if (!Python.isStarted()) {
+                    Python.start(new com.chaquo.python.android.AndroidPlatform(getApplicationContext()));
+                }
+                
                 Python py = Python.getInstance();
                 PyObject module = py.getModule("media_extractor");
                 
