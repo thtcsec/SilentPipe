@@ -574,7 +574,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             visualizerView.release();
         }
         if (executorService != null) {
-            executorService.shutdown();
+            executorService.shutdownNow();
         }
     }
 
