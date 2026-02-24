@@ -125,7 +125,8 @@ public class FindSoundFragment extends Fragment {
                         // Optional: Update UI with amplitude (Visualizer placeholder)
                         if (getActivity() != null) {
                              getActivity().runOnUiThread(() -> {
-                                 if (tvStatus != null) tvStatus.setText(getString(R.string.find_sound_listening) + " Amp: " + (int)finalAmp);
+                                 if (!isAdded() || tvStatus == null) return;
+                                 tvStatus.setText(getString(R.string.find_sound_listening) + " Amp: " + (int)finalAmp);
                              });
                         }
                     }
@@ -167,6 +168,8 @@ public class FindSoundFragment extends Fragment {
     @Override
     public void onDestroyView() {
         stopListening();
+        btnListen = null;
+        tvStatus = null;
         super.onDestroyView();
     }
 }

@@ -44,6 +44,7 @@ public class FavoritesFragment extends Fragment {
             List<FavoriteItem> items = db.favoriteDao().getAll();
             
             requireActivity().runOnUiThread(() -> {
+                if (!isAdded() || getActivity() == null) return;
 
                 if (items.isEmpty()) {
                     view.findViewById(R.id.tv_empty).setVisibility(View.VISIBLE);
@@ -77,7 +78,10 @@ public class FavoritesFragment extends Fragment {
                                         new Thread(() -> {
                                             AppDatabase db = AppDatabase.getDatabase(requireContext());
                                             db.favoriteDao().update(item);
-                                            requireActivity().runOnUiThread(() -> loadFavorites(view));
+                                            requireActivity().runOnUiThread(() -> {
+                                                if (!isAdded() || getActivity() == null) return;
+                                                loadFavorites(view);
+                                            });
                                         }).start();
                                     }
                                 })
@@ -94,7 +98,10 @@ public class FavoritesFragment extends Fragment {
                                     new Thread(() -> {
                                         AppDatabase db = AppDatabase.getDatabase(requireContext());
                                         db.favoriteDao().delete(item);
-                                        requireActivity().runOnUiThread(() -> loadFavorites(view)); // Reload list
+                                        requireActivity().runOnUiThread(() -> {
+                                            if (!isAdded() || getActivity() == null) return;
+                                            loadFavorites(view); // Reload list
+                                        });
                                     }).start();
                                 })
                                 .setNegativeButton("Cancel", null)
@@ -105,5 +112,11 @@ public class FavoritesFragment extends Fragment {
                 }
             });
         }).start();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        recyclerView = null;
     }
 }
