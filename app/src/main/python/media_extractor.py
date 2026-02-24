@@ -205,10 +205,10 @@ def extract_info(url, prefer_hq=False, cookie_str=None, show_video=False):
     }
 
     # Cookie support ...
+    import tempfile
+    import os
     cookie_temp_path = None
     if cookie_str and len(cookie_str.strip()) > 20: 
-        import tempfile
-        import os
         try:
             fd, cookie_temp_path = tempfile.mkstemp(suffix=".txt", prefix="cookies_")
             with os.fdopen(fd, 'w') as f:

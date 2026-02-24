@@ -82,9 +82,8 @@
                         <ImageView
                              android:layout_width="24dp"
                              android:layout_height="24dp"
-                             android:src="@android:drawable/ic_media_play"
-                             app:tint="?attr/colorOnSurfaceVariant"
-                             android:rotation="90" 
+                             android:src="@drawable/ic_arrow_navigate"
+                             app:tint="?attr/colorOnSurfaceVariant" 
                              android:alpha="0.5"/>
                     </LinearLayout>
 
@@ -101,7 +100,7 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/ic_menu_slideshow"
+                            android:src="@drawable/ic_grid_view"
                             app:tint="?attr/colorPrimary" />
 
                         <TextView
@@ -133,7 +132,7 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/ic_menu_mapmode"
+                            android:src="@drawable/ic_system"
                             app:tint="?attr/colorPrimary" />
 
                         <TextView
@@ -149,9 +148,8 @@
                         <ImageView
                              android:layout_width="24dp"
                              android:layout_height="24dp"
-                             android:src="@android:drawable/ic_media_play"
+                             android:src="@drawable/ic_arrow_navigate"
                              app:tint="?attr/colorOnSurfaceVariant"
-                             android:rotation="90"
                              android:alpha="0.5"/>
                     </LinearLayout>
 
@@ -168,7 +166,7 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/ic_menu_camera"
+                            android:src="@drawable/ic_grid_view_selected"
                             app:tint="?attr/colorPrimary" />
 
                         <TextView
@@ -199,7 +197,7 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/ic_menu_sort_by_size"
+                            android:src="@drawable/ic_audio"
                             app:tint="?attr/colorPrimary" />
 
                         <TextView
@@ -232,7 +230,7 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/ic_menu_edit"
+                            android:src="@drawable/ic_appearance"
                             app:tint="?attr/colorPrimary" />
 
                         <TextView
@@ -248,9 +246,8 @@
                         <ImageView
                              android:layout_width="24dp"
                              android:layout_height="24dp"
-                             android:src="@android:drawable/ic_media_play"
+                             android:src="@drawable/ic_arrow_navigate"
                              app:tint="?attr/colorOnSurfaceVariant"
-                             android:rotation="90"
                              android:alpha="0.5"/>
                     </LinearLayout>
 
@@ -269,7 +266,7 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/btn_star"
+                            android:src="@drawable/ic_appearance"
                             app:tint="?attr/colorPrimary" />
 
                         <TextView
@@ -285,9 +282,8 @@
                         <ImageView
                              android:layout_width="24dp"
                              android:layout_height="24dp"
-                             android:src="@android:drawable/ic_media_play"
+                             android:src="@drawable/ic_arrow_navigate"
                              app:tint="?attr/colorOnSurfaceVariant"
-                             android:rotation="90"
                              android:alpha="0.5"/>
                     </LinearLayout>
                 </LinearLayout>
@@ -338,7 +334,8 @@
                             android:textColor="?attr/colorOnSurface"
                             android:layout_marginStart="16dp"/>
                         
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_media_play" app:tint="?attr/colorOnSurfaceVariant" android:rotation="90" android:alpha="0.5"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_arrow_navigate"
+                             app:tint="?attr/colorOnSurfaceVariant" android:alpha="0.5"/>
                     </LinearLayout>
 
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
@@ -354,7 +351,7 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/ic_lock_silent_mode_off"
+                            android:src="@drawable/ic_audio"
                             app:tint="?attr/colorPrimary" />
 
                         <TextView
@@ -411,7 +408,8 @@
                                 android:textColor="?attr/colorOnSurfaceVariant"/>
                         </LinearLayout>
                         
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_media_play" app:tint="?attr/colorOnSurfaceVariant" android:rotation="90" android:alpha="0.5"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_arrow_navigate"
+                             app:tint="?attr/colorOnSurfaceVariant" android:alpha="0.5"/>
                     </LinearLayout>
 
                 </LinearLayout>
@@ -473,7 +471,7 @@
                                 android:textSize="14sp"
                                 android:textColor="?attr/colorOnSurfaceVariant"/>
                         </LinearLayout>
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_delete" app:tint="?attr/colorAccent"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_trashcan" app:tint="?attr/colorAccent"/>
                     </LinearLayout>
 
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
@@ -514,7 +512,7 @@
                                 android:textSize="14sp"
                                 android:textColor="?attr/colorOnSurfaceVariant"/>
                         </LinearLayout>
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_edit" app:tint="?attr/colorOnSurfaceVariant" android:alpha="0.5"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_arrow_navigate" app:tint="?attr/colorOnSurfaceVariant" android:alpha="0.5"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -634,7 +632,7 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/ic_popup_sync"
+                            android:src="@drawable/ic_reload"
                             app:tint="?attr/colorPrimary" />
 
                         <LinearLayout
@@ -657,7 +655,7 @@
                                 android:textSize="14sp"
                                 android:textColor="?attr/colorOnSurfaceVariant"/>
                         </LinearLayout>
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_view" app:tint="?attr/colorOnSurfaceVariant" android:rotation="270" android:alpha="0.5"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_arrow_navigate" app:tint="?attr/colorOnSurfaceVariant" android:alpha="0.5"/>
                     </LinearLayout>
 
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
@@ -698,7 +696,7 @@
                                 android:textSize="14sp"
                                 android:textColor="?attr/colorOnSurfaceVariant"/>
                         </LinearLayout>
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_view" app:tint="?attr/colorOnSurfaceVariant" android:rotation="270" android:alpha="0.5"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_arrow_navigate" app:tint="?attr/colorOnSurfaceVariant" android:alpha="0.5"/>
                     </LinearLayout>
 
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginStart="56dp"/>
@@ -716,7 +714,7 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/ic_menu_info_details"
+                            android:src="@drawable/ic_info"
                             app:tint="?attr/colorPrimary" />
 
                         <LinearLayout
@@ -738,7 +736,7 @@
                                 android:textSize="14sp"
                                 android:textColor="?attr/colorOnSurfaceVariant"/>
                         </LinearLayout>
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_view" app:tint="?attr/colorOnSurfaceVariant" android:rotation="270" android:alpha="0.5"/>
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_arrow_navigate" app:tint="?attr/colorOnSurfaceVariant" android:alpha="0.5"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

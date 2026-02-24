@@ -86,6 +86,17 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             
             if (visualizerView != null) {
                 SharedPreferences vizPrefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
+                
+                boolean showVideo = vizPrefs.getBoolean("pref_show_video", false);
+                if (mediaController != null) {
+                    mediaController.setTrackSelectionParameters(
+                        mediaController.getTrackSelectionParameters()
+                            .buildUpon()
+                            .setTrackTypeDisabled(androidx.media3.common.C.TRACK_TYPE_VIDEO, !showVideo)
+                            .build()
+                    );
+                }
+
                 int vizStyleIndex = vizPrefs.getInt("pref_visualizer_style", 0);
                 visualizerView.setStyle(vizStyleIndex == 1 ? 
                     com.tuhoang.silentpipe.ui.view.VisualizerView.VisualizerStyle.BARS : 
@@ -174,24 +185,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         // Bottom Player Buttons
         findViewById(R.id.layout_bottom_player).setOnClickListener(v -> togglePlayer(true));
         findViewById(R.id.btn_bottom_player_close).setOnClickListener(v -> {
-            togglePlayer(true); // First restore to stop? Or just stop?
-            // User likely wants to stop playback and close player.
-            if (mediaController != null) mediaController.pause(); // Or stop()
-             findViewById(R.id.layout_bottom_player).setVisibility(View.GONE);
-             findViewById(R.id.fab_restore).setVisibility(View.VISIBLE); // Reset to default state? 
-             // Actually, if we close, we probably want to hide everything.
-             togglePlayer(false); // Ensure minimized
-             findViewById(R.id.layout_bottom_player).setVisibility(View.GONE);
-             findViewById(R.id.fab_restore).setVisibility(View.VISIBLE); // Show floating button as fallback?
-             // Better: just hide bottom player and show floating button, or stop completely?
-             // Let's just pause and hide bottom player, reverting to floating button state effectively "minimized but paused".
-             // Or maybe "Close" means "Exit Player". 
-             // Let's go with: Pause and Switch to Floating Button (Paused state).
-             if (mediaController != null) mediaController.pause();
-             togglePlayer(false); // This will re-evaluate prefs. 
-             // If pref is Bottom Player, it will show Bottom Player again.
-             // We need a way to say "Hidden". 
-             // Let's just Pause.
+             stopPlayback();
         });
         
         findViewById(R.id.btn_bottom_player_play).setOnClickListener(v -> {
@@ -300,6 +294,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         SharedPreferences prefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
         boolean useBottomPlayer = prefs.getBoolean("pref_use_bottom_player", false);
         boolean showVisualizer = prefs.getBoolean("pref_show_visualizer", false);
+        boolean showVideo = prefs.getBoolean("pref_show_video", false);
 
         if (show) {
             restoreBtn.setVisibility(View.GONE);
@@ -308,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             
             playerView.setVisibility(View.VISIBLE);
             playerView.animate().alpha(1f).setDuration(200).start();
-            if (visualizerView != null && showVisualizer) {
+            if (visualizerView != null && showVisualizer && !showVideo) {
                  visualizerView.setVisibility(View.VISIBLE);
                  visualizerView.animate().alpha(1f).setDuration(200).start();
                  com.tuhoang.silentpipe.core.service.PlaybackService service = com.tuhoang.silentpipe.core.service.PlaybackService.instance;
@@ -376,6 +371,34 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         if (btnPlay != null && mediaController != null) {
             btnPlay.setImageResource(mediaController.isPlaying() ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play);
         }
+    }
+
+    private void stopPlayback() {
+        if (mediaController != null) {
+            mediaController.pause();
+            mediaController.stop();
+        }
+        currentMediaItem = null;
+        
+        playerView.setVisibility(View.GONE);
+        if (visualizerView != null) visualizerView.setVisibility(View.GONE);
+        
+        View[] fabChildren = {
+            findViewById(R.id.fab_favorite),
+            findViewById(R.id.fab_speed),
+            findViewById(R.id.fab_download),
+            findViewById(R.id.fab_minimize)
+        };
+        for (View view : fabChildren) view.setVisibility(View.GONE);
+        
+        View bottomPlayer = findViewById(R.id.layout_bottom_player);
+        if (bottomPlayer != null) bottomPlayer.setVisibility(View.GONE);
+        
+        View restoreBtn = findViewById(R.id.fab_restore);
+        if (restoreBtn != null) restoreBtn.setVisibility(View.GONE);
+        
+        View nowPlayingCard = findViewById(R.id.card_now_playing);
+        if (nowPlayingCard != null) nowPlayingCard.setVisibility(View.GONE);
     }
 
     private void showSpeedDialog() {

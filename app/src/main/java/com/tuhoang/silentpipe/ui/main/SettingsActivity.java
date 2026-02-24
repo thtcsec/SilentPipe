@@ -259,22 +259,26 @@ public class SettingsActivity extends AppCompatActivity {
         updateCacheSize();
 
         btnCleanCache.setOnClickListener(v -> {
-            long size = 0;
-            try {
-                size += getDirSize(getCacheDir());
-                size += getDirSize(getExternalCacheDir());
-            } catch (Exception e) {
-                Log.e(TAG, "Error calculating cache size", e);
-            }
+            new Thread(() -> {
+                long size = 0;
+                try {
+                    size += getDirSize(getCacheDir());
+                    size += getDirSize(getExternalCacheDir());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error calculating cache size", e);
+                }
 
-            deleteDir(getCacheDir());
-            File external = getExternalCacheDir();
-            if (external != null)
-                deleteDir(external);
-            
-            String formattedSize = android.text.format.Formatter.formatFileSize(this, size);
-            Toast.makeText(this, getString(R.string.cache_cleaned, formattedSize), Toast.LENGTH_SHORT).show();
-            updateCacheSize();
+                clearCacheContents(getCacheDir());
+                File external = getExternalCacheDir();
+                if (external != null) clearCacheContents(external);
+                
+                long finalSize = size;
+                runOnUiThread(() -> {
+                    String formattedSize = android.text.format.Formatter.formatFileSize(SettingsActivity.this, finalSize);
+                    Toast.makeText(SettingsActivity.this, getString(R.string.cache_cleaned, formattedSize), Toast.LENGTH_SHORT).show();
+                    updateCacheSize();
+                });
+            }).start();
         });
         
         setupCheckUpdate();
@@ -338,17 +342,24 @@ public class SettingsActivity extends AppCompatActivity {
             String[] children = dir.list();
             if (children != null) {
                 for (String child : children) {
-                    boolean success = deleteDir(new File(dir, child));
-                    if (!success) {
-                        return false;
-                    }
+                    deleteDir(new File(dir, child));
                 }
             }
             return dir.delete();
         } else if (dir != null && dir.isFile()) {
             return dir.delete();
-        } else {
-            return false;
+        }
+        return false;
+    }
+
+    private void clearCacheContents(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            File[] children = dir.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    deleteDir(child);
+                }
+            }
         }
     }
 
