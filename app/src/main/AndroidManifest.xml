@@ -99,14 +99,6 @@
             </intent-filter>
         </service>
             
-        <receiver
-            android:name="com.tuhoang.silentpipe.receiver.BecomingNoisyReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.media.AUDIO_BECOMING_NOISY" />
-            </intent-filter>
-        </receiver>
-
     </application>
 
 </manifest>

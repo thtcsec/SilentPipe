@@ -1,0 +1,62 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/C:/Users/Acer/.gradle/wrapper/dists/gradle-9.0.0-bin/d6wjpkvcgsg3oed0qlfss3wgl/gradle-9.0.0/lib/native-platform-0.22-milestone-28.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Task :app:extractDebugPythonBuildPackages UP-TO-DATE
+> Task :app:installDebugPythonRequirements UP-TO-DATE
+> Task :app:mergeDebugPythonSources UP-TO-DATE
+> Task :app:generateDebugPythonProxies UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :app:kaptGenerateStubsDebugKotlin UP-TO-DATE
+> Task :app:kaptDebugKotlin UP-TO-DATE
+> Task :app:compileDebugKotlin NO-SOURCE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+
+> Task :app:compileDebugJavaWithJavac FAILED
+D:\tu_projects\SilentPipe\app\src\main\java\com\tuhoang\silentpipe\core\service\PlaybackService.java:15: error: cannot find symbol
+import com.tuhoang.silentpipe.receiver.BecomingNoisyReceiver;
+                                      ^
+  symbol:   class BecomingNoisyReceiver
+  location: package com.tuhoang.silentpipe.receiver
+1 error
+
+[Incubating] Problems report is available at: file:///D:/tu_projects/SilentPipe/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugJavaWithJavac'.
+> Compilation failed; see the compiler output below.
+  D:\tu_projects\SilentPipe\app\src\main\java\com\tuhoang\silentpipe\core\service\PlaybackService.java:15: error: cannot find symbol
+  import com.tuhoang.silentpipe.receiver.BecomingNoisyReceiver;
+                                        ^
+    symbol:   class BecomingNoisyReceiver
+    location: package com.tuhoang.silentpipe.receiver
+  1 error
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+
+BUILD FAILED in 1s
+24 actionable tasks: 1 executed, 23 up-to-date

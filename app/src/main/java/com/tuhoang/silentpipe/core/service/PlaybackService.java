@@ -12,7 +12,6 @@ import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.session.MediaSession;
 import androidx.media3.session.MediaSessionService;
 
-import com.tuhoang.silentpipe.receiver.BecomingNoisyReceiver;
 import com.tuhoang.silentpipe.ui.main.MainActivity;
 
 public class PlaybackService extends MediaSessionService {
@@ -40,6 +39,7 @@ public class PlaybackService extends MediaSessionService {
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                 .build();
         player.setAudioAttributes(audioAttributes, true);
+        player.setHandleAudioBecomingNoisy(true);
         
         // Initialize Audio Effects
         try {

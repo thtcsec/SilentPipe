@@ -131,6 +131,16 @@ public class FindSoundFragment extends Fragment {
                         }
                     }
                 }
+                
+                // RELEASE SAFELY HERE WHEN READ LOOP DIES
+                try {
+                    if (audioRecord != null) {
+                        audioRecord.release();
+                        audioRecord = null;
+                    }
+                } catch (Exception ex) {
+                    Log.e(TAG, "Error releasing audioRecord", ex);
+                }
             });
             recordingThread.start();
             
@@ -155,8 +165,7 @@ public class FindSoundFragment extends Fragment {
                 if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
                     audioRecord.stop();
                 }
-                audioRecord.release();
-                audioRecord = null;
+                // Moved release to thread lifecycle to avoid native crashes
             }
         } catch (Exception e) {
             Log.e(TAG, "Error stopping recording: " + e.getMessage());
