@@ -172,6 +172,9 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 }
             }
         });
+
+        // Handle initial intent (e.g. from ShareMenu if app was killed)
+        handleIntent(getIntent());
     }
 
     private void setupButtons() {
@@ -611,6 +614,15 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                     loadVideo(normalizedUrl);
                     intent.removeExtra(Intent.EXTRA_TEXT); // Consume extra
                      intent.setAction("");
+                }
+            }
+        } else if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
+            String url = intent.getDataString();
+            if (url != null && clipboardHelper != null) {
+                String normalizedUrl = clipboardHelper.normalizeUrl(url);
+                if (normalizedUrl != null) {
+                    loadVideo(normalizedUrl);
+                    intent.setAction("");
                 }
             }
         }
