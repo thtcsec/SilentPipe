@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
 
     private boolean ignoreNextClipboardCheck = false;
     private final ExecutorService executorService = Executors.newFixedThreadPool(4);
+    private final java.util.concurrent.atomic.AtomicInteger currentLoadId = new java.util.concurrent.atomic.AtomicInteger(0);
 
     private void updateSkipTimeUI() {
         if (playerView != null) {
@@ -117,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
@@ -169,6 +171,27 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
 
         // Handle initial intent (e.g. from ShareMenu if app was killed)
         handleIntent(getIntent());
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 102 && grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            // Permission granted for audio recording, try linking visualizer if player is active
+            if (visualizerView != null && visualizerView.getVisibility() == View.VISIBLE) {
+                com.tuhoang.silentpipe.core.service.PlaybackService service = com.tuhoang.silentpipe.core.service.PlaybackService.instance;
+                if (service != null && service.getAudioEffectManager() != null) {
+                    int sessionId = service.getAudioEffectManager().getAudioSessionId();
+                    if (sessionId != 0) {
+                        try {
+                            visualizerView.link(sessionId);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to link visualizer after permission granted", e);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void setupButtons() {
@@ -476,7 +499,20 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
     @Override
     protected void onStart() {
         super.onStart();
-        SessionToken sessionToken = new SessionToken(this, new ComponentName(this, PlaybackService.class));
+        // Ensure the service is running before connecting via SessionToken
+        try {
+            Intent serviceIntent = new Intent(this, PlaybackService.class);
+            startService(serviceIntent);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to start PlaybackService", e);
+        }
+        SessionToken sessionToken;
+        try {
+            sessionToken = new SessionToken(this, new ComponentName(this, PlaybackService.class));
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Failed to resolve SessionToken – check manifest service declaration", e);
+            return;
+        }
         ListenableFuture<MediaController> controllerFuture =
                 new MediaController.Builder(this, sessionToken).buildAsync();
         controllerFuture.addListener(() -> {
@@ -700,6 +736,9 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 togglePlayer(true); 
             }
         });
+        
+        final int thisLoadId = currentLoadId.incrementAndGet();
+        
         executorService.execute(() -> {
             if (isFinishing() || isDestroyed()) return;
             try {
@@ -717,6 +756,11 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                 String cookies = prefs.getString("pref_youtube_cookies", "");
                 
                 PyObject result = module.callAttr("extract_info", url, preferHq, cookies, showVideo);
+                
+                if (thisLoadId != currentLoadId.get()) {
+                    Log.d(TAG, "Cancelling outdated loadVideo task for URL: " + url);
+                    return; // Prevent race conditions
+                }
 
                 if (result == null) {
                     runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_player, getString(R.string.unknown_error)), Toast.LENGTH_LONG).show());
@@ -835,19 +879,22 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                     String error = errorObj.toString();
                     com.tuhoang.silentpipe.core.manager.ErrorLogManager.getInstance(this).logError("Python", error);
                     if (!isFinishing() && !isDestroyed()) {
-                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_python, error), Toast.LENGTH_LONG).show());
+                        String shortError = error.length() > 100 ? error.substring(0, 100) + "..." : error;
+                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_python, shortError), Toast.LENGTH_LONG).show());
                     }
                 } else {
                     String rawResult = result.toString();
                     if (!isFinishing() && !isDestroyed()) {
-                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, rawResult), Toast.LENGTH_LONG).show());
+                        String shortRaw = rawResult.length() > 100 ? rawResult.substring(0, 100) + "..." : rawResult;
+                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, shortRaw), Toast.LENGTH_LONG).show());
                     }
                 }
             } catch (Throwable e) {
                 Log.e(TAG, "Critical Error in loadVideo", e);
                 if (!isFinishing() && !isDestroyed()) {
                     com.tuhoang.silentpipe.core.manager.ErrorLogManager.getInstance(this).logError("MainActivity", "Critical: " + e.getMessage());
-                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, e.getMessage()), Toast.LENGTH_LONG).show());
+                    String shortE = e.getMessage() != null && e.getMessage().length() > 100 ? e.getMessage().substring(0, 100) + "..." : e.getMessage();
+                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_critical_error, shortE), Toast.LENGTH_LONG).show());
                 }
             }
         });

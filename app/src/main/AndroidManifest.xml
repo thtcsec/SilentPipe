@@ -21,8 +21,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SilentPipe"
-        tools:targetApi="31">
+        android:theme="@style/Theme.SilentPipe">
         
         <activity
             android:name="com.tuhoang.silentpipe.ui.main.MainActivity"
@@ -76,6 +75,7 @@
         <activity
             android:name=".ui.main.AdvancedEqActivity"
             android:label="Advanced Equalizer"
+            android:exported="false"
             android:theme="@style/Theme.SilentPipe"
             android:screenOrientation="portrait" />
 
