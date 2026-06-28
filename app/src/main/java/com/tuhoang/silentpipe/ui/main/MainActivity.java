@@ -707,6 +707,28 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         new com.tuhoang.silentpipe.ui.main.EqualizerFragment().show(getSupportFragmentManager(), "equalizer");
     }
 
+    /**
+     * Safely extract a String value from a Python dict PyObject.
+     * Returns null if the key is missing, the value is Python None, or any error occurs.
+     */
+    private String pyDictGetString(PyObject pyDict, String key) {
+        try {
+            if (pyDict == null) return null;
+            PyObject value = pyDict.callAttr("get", key);
+            if (value == null) return null;
+            // Chaquopy wraps Python None as a PyObject whose toJava(Object.class) returns null
+            Object javaVal = value.toJava(Object.class);
+            if (javaVal == null) return null;
+            String str = javaVal.toString();
+            // Python's "None" string should be treated as null
+            if ("None".equals(str) || str.isEmpty()) return null;
+            return str;
+        } catch (Exception e) {
+            Log.w(TAG, "pyDictGetString failed for key: " + key, e);
+            return null;
+        }
+    }
+
     public void loadVideo(String url) {
         loadVideo(url, null);
     }
@@ -762,28 +784,31 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                     return; // Prevent race conditions
                 }
 
-                if (result == null) {
-                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_player, getString(R.string.unknown_error)), Toast.LENGTH_LONG).show());
+                // ── Null-safety: result can be null or Python None ──
+                if (result == null || result.toJava(Object.class) == null) {
+                    if (!isFinishing() && !isDestroyed()) {
+                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.toast_error_player, "Extraction returned null"), Toast.LENGTH_LONG).show());
+                    }
                     return;
                 }
 
-                PyObject urlObj = result.callAttr("get", "url");
-                PyObject titleObj = result.callAttr("get", "title");
-                PyObject errorObj = result.callAttr("get", "error");
-                PyObject sourceObj = result.callAttr("get", "source_info");
+                // Safe helper: extract string from Python dict, returns null for missing/None values
+                String streamUrl = pyDictGetString(result, "url");
+                String title = pyDictGetString(result, "title");
+                String errorStr = pyDictGetString(result, "error");
+                String sourceInfo = pyDictGetString(result, "source_info");
 
-                String streamUrl = (urlObj != null) ? urlObj.toString() : null;
-                String title = (titleObj != null) ? titleObj.toString() : getString(R.string.unknown_title);
-                String sourceInfo = (sourceObj != null) ? sourceObj.toString() : getString(R.string.source_youtube);
+                if (title == null || title.isEmpty()) title = getString(R.string.unknown_title);
+                if (sourceInfo == null || sourceInfo.isEmpty()) sourceInfo = getString(R.string.source_youtube);
 
-                if (streamUrl != null && !streamUrl.isEmpty() && !streamUrl.equals("None")) {
+                if (streamUrl != null && !streamUrl.isEmpty()) {
                     final String finalUrl = streamUrl;
                     currentStreamUrl = finalUrl;
                     final String finalTitle = title;
                     final String finalSourceInfo = sourceInfo;
                     
-                    PyObject uploaderObj = result.callAttr("get", "uploader");
-                    final String finalUploader = (uploaderObj != null) ? uploaderObj.toString() : getString(R.string.unknown_uploader);
+                    String uploader = pyDictGetString(result, "uploader");
+                    final String finalUploader = (uploader != null && !uploader.isEmpty()) ? uploader : getString(R.string.unknown_uploader);
                     final long duration = 0; 
                     
                     if (isFinishing() || isDestroyed()) return;
@@ -875,8 +900,8 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                             }
                         }
                     });
-                } else if (errorObj != null && !errorObj.toString().equals("None")) {
-                    String error = errorObj.toString();
+                } else if (errorStr != null && !errorStr.isEmpty()) {
+                    String error = errorStr;
                     com.tuhoang.silentpipe.core.manager.ErrorLogManager.getInstance(this).logError("Python", error);
                     if (!isFinishing() && !isDestroyed()) {
                         String shortError = error.length() > 100 ? error.substring(0, 100) + "..." : error;

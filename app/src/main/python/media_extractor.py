@@ -1,5 +1,8 @@
 import sys
 import traceback
+import re
+import json
+import time
 
 # Capture import errors to report them to the UI
 IMPORT_ERROR = None
@@ -8,263 +11,350 @@ try:
 except Exception:
     IMPORT_ERROR = traceback.format_exc()
 
+
+# --- Constants ---
+_MOBILE_UA = (
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) '
+    'AppleWebKit/605.1.15 (KHTML, like Gecko) '
+    'Version/17.4 Mobile/15E148 Safari/604.1'
+)
+
+_TIKTOK_GENERIC_WORDS = {"tiktok", "video", "music", "make your day"}
+
+
+def _safe_result(result):
+    """Ensure the result is always a valid dict with expected keys.
+    This prevents NoneType errors on the Java/Chaquopy side."""
+    if result is None or not isinstance(result, dict):
+        return {"error": "Extraction returned no data (None result)."}
+    # Ensure all expected keys exist with safe defaults
+    result.setdefault("title", "Unknown Title")
+    result.setdefault("duration", 0)
+    result.setdefault("thumbnail", "")
+    result.setdefault("url", "")
+    result.setdefault("uploader", "Unknown")
+    result.setdefault("view_count", 0)
+    result.setdefault("source_info", "")
+    return result
+
+
+# ──────────────────────────────────────────────
+#  TikTok manual extraction (fallback)
+# ──────────────────────────────────────────────
+
 def _extract_tiktok_manual(url):
+    """Scrape TikTok page directly when yt-dlp fails."""
     try:
         import urllib.request
         import urllib.error
-        import re
-        import json
         import ssl
-        import time
 
-        print(f"DEBUG: Starting manual extraction for {url}")
+        if not url or "tiktok.com" not in url:
+            return {"error": "Not a TikTok URL"}
 
-        # Bypass SSL
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
 
         headers = {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
-            'Referer': 'https://www.tiktok.com/'
+            'User-Agent': _MOBILE_UA,
+            'Referer': 'https://www.tiktok.com/',
         }
-        
-        if "tiktok.com" not in url:
-            raise Exception("Not a TikTok URL")
 
-        # Retry Logic
-        max_retries = 3
-        last_error = None
-        
-        for attempt in range(max_retries):
-            try:
-                print(f"DEBUG: Attempt {attempt + 1} for {url}")
-                req = urllib.request.Request(url, headers=headers)
-                with urllib.request.urlopen(req, context=ctx, timeout=15) as response:
-                    html = response.read().decode('utf-8')
-                print("DEBUG: HTML fetched successfully")
-                break # Success
-            except urllib.error.HTTPError as e:
-                print(f"DEBUG: HTTP Error {e.code}")
-                if e.code in [429, 403, 503]:
-                    last_error = e
-                    time.sleep(2 * (attempt + 1)) # Backoff
-                    continue
-                else:
-                    raise e # Fatal error
-            except Exception as e:
-                print(f"DEBUG: Network Error {e}")
-                last_error = e
-                time.sleep(1)
-                continue
-        else:
-            raise last_error or Exception("Failed after retries")
+        html = _fetch_with_retries(url, headers, ctx, max_retries=3)
+        if not html:
+            return {"error": "Không thể kết nối TikTok sau nhiều lần thử."}
 
-        audio_url = None
-        
-        # Strategy 1: "playUrl" in JSON
-        matches = re.findall(r'"playUrl":"(.*?)"', html)
-        for match in matches:
-            cleaned = match.encode().decode('unicode_escape').replace(r'\/', '/')
-            if cleaned.startswith('http') and len(cleaned) > 10:
-                audio_url = cleaned
-                print("DEBUG: Found Strategy 1 URL")
-                break
-        
-        if not audio_url:
-             # Strategy 2: Direct mp3/m4a
-             media_matches = re.findall(r'"(https?://[^"]+?\.(?:mp3|m4a|aac).*?)"', html)
-             if media_matches:
-                 audio_url = media_matches[0].encode().decode('unicode_escape').replace(r'\/', '/')
-                 print("DEBUG: Found Strategy 2 URL")
+        audio_url = (
+            _tiktok_strategy_play_url(html)
+            or _tiktok_strategy_direct_media(html)
+            or _tiktok_strategy_universal_data(html)
+        )
 
         if not audio_url:
-            # Strategy 3: UNIVERSAL_DATA
-            json_match = re.search(r'<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>(.*?)</script>', html)
-            if json_match:
-                 try:
-                    data = json.loads(json_match.group(1))
-                    # Quick regex search on the JSON string to avoid complex traversal
-                    s_data = json.dumps(data)
-                    u_match = re.search(r'"playUrl":"(.*?)"', s_data)
-                    if u_match:
-                        audio_url = u_match.group(1).encode().decode('unicode_escape').replace(r'\/', '/')
-                        print("DEBUG: Found Strategy 3 URL")
-                 except Exception as e:
-                    print(f"DEBUG: Strategy 3 failed: {e}")
+            return {"error": "Không thể lấy link nhạc TikTok (Manual Parse Failed)."}
 
-        if audio_url:
-             title = "TikTok Audio"
-             
-             # 1. Try og:title (Most reliable)
-             og_title = re.search(r'<meta property="og:title" content="(.*?)"', html)
-             if og_title:
-                 title = og_title.group(1).strip()
-             
-             # 2. Try regex for specific music title pattern often in TikTok Music
-             # <h1 data-e2e="music-title">Title</h1> (need to check if this exists in mobile view, maybe not)
-             
-             # 3. Try title tag as fallback
-             if title == "TikTok Audio" or "TikTok" in title:
-                 title_tag = re.search(r'<title>(.*?)</title>', html)
-                 if title_tag:
-                     raw_title = title_tag.group(1).strip()
-                     # Clean up
-                     raw_title = raw_title.replace(" | TikTok", "").replace("TikTok - Make Your Day", "").strip()
-                     if raw_title and "TikTok" not in raw_title:
-                         title = raw_title
-             
-             # 4. Description fallback
-             if title == "TikTok Audio":
-                 desc_match = re.search(r'<meta property="og:description" content="(.*?)"', html)
-                 if desc_match:
-                     desc = desc_match.group(1).strip()
-                     if "on TikTok" not in desc:
-                         title = desc
-                     else:
-                         parts = desc.split(" | ")
-                         if len(parts) > 0:
-                              title = parts[0]
+        title = _extract_tiktok_title(html) or f"TikTok Audio {int(time.time())}"
 
-             # Final Cleanup
-             if not title: title = f"TikTok Audio {int(time.time())}"
-             
-             return {
-                "title": _clean_tiktok_title(title, html),
-                "duration": 0,
-                "thumbnail": "",
-                "url": audio_url,
-                "uploader": "TikTok",
-                "view_count": 0,
-                "source_info": "Source: TikTok (Manual)"
-            }
-        else:
-             return {"error": "Không thể lấy link nhạc TikTok (Manual Parse Failed)."}
+        return {
+            "title": title,
+            "duration": 0,
+            "thumbnail": "",
+            "url": audio_url,
+            "uploader": "TikTok",
+            "view_count": 0,
+            "source_info": "Source: TikTok (Manual)",
+        }
 
     except Exception as e:
-        print(f"DEBUG: Manual extraction error: {e}")
-        return {"error": f"Lỗi lấy nhạc TikTok: {str(e)}"}
+        return {"error": f"Lỗi lấy nhạc TikTok: {e}"}
 
-def _clean_tiktok_title(title, html):
-    """
-    Cleans TikTok's generic 'Make Your Day' titles and falls back to description.
-    """
+
+def _fetch_with_retries(url, headers, ssl_ctx, max_retries=3):
+    """Fetch URL content with retry + exponential backoff."""
+    import urllib.request
+    import urllib.error
+
+    if not url:
+        return None
+
+    last_error = None
+    for attempt in range(max_retries):
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, context=ssl_ctx, timeout=15) as resp:
+                raw = resp.read()
+                if raw is None:
+                    return None
+                return raw.decode('utf-8', errors='replace')
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 403, 503):
+                last_error = e
+                time.sleep(2 * (attempt + 1))
+            else:
+                last_error = e
+                break
+        except Exception as e:
+            last_error = e
+            time.sleep(1)
+    return None
+
+
+def _unescape_url(raw):
+    """Decode unicode-escaped URL and normalise slashes."""
+    if not raw:
+        return ""
+    try:
+        return raw.encode().decode('unicode_escape').replace(r'\/', '/')
+    except Exception:
+        return raw.replace(r'\/', '/')
+
+
+def _tiktok_strategy_play_url(html):
+    if not html:
+        return None
+    for m in re.findall(r'"playUrl":"(.*?)"', html):
+        cleaned = _unescape_url(m)
+        if cleaned and cleaned.startswith('http') and len(cleaned) > 10:
+            return cleaned
+    return None
+
+
+def _tiktok_strategy_direct_media(html):
+    if not html:
+        return None
+    matches = re.findall(r'"(https?://[^"]+?\.(?:mp3|m4a|aac).*?)"', html)
+    if matches:
+        return _unescape_url(matches[0])
+    return None
+
+
+def _tiktok_strategy_universal_data(html):
+    if not html:
+        return None
+    m = re.search(
+        r'<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>(.*?)</script>',
+        html,
+    )
+    if not m:
+        return None
+    try:
+        s_data = m.group(1)
+        u = re.search(r'"playUrl":"(.*?)"', s_data)
+        if u:
+            return _unescape_url(u.group(1))
+    except Exception:
+        pass
+    return None
+
+
+def _extract_tiktok_title(html):
+    """Best-effort title extraction from TikTok HTML."""
+    if not html:
+        return f"TikTok Audio {int(time.time())}"
+
+    title = None
+
+    # 1. og:title
+    og = re.search(r'<meta property="og:title" content="(.*?)"', html)
+    if og:
+        title = og.group(1).strip()
+
+    # 2. <title> tag fallback
+    if not title or _is_generic_tiktok_title(title):
+        tag = re.search(r'<title>(.*?)</title>', html)
+        if tag:
+            raw = (
+                tag.group(1)
+                .replace(" | TikTok", "")
+                .replace("TikTok - Make Your Day", "")
+                .strip()
+            )
+            if raw and not _is_generic_tiktok_title(raw):
+                title = raw
+
+    # 3. og:description fallback
+    if not title or _is_generic_tiktok_title(title):
+        desc = re.search(r'<meta property="og:description" content="(.*?)"', html)
+        if desc:
+            d = desc.group(1).strip()
+            if " | " in d:
+                d = d.split(" | ")[0]
+            d = re.sub(r'(?i)\s*on TikTok.*$', '', d).strip()
+            if d and len(d) > 3:
+                title = d
+
+    if not title or _is_generic_tiktok_title(title):
+        title = f"TikTok Audio {int(time.time())}"
+
+    return title
+
+
+def _is_generic_tiktok_title(title):
     if not title:
-        title = ""
-        
-    lower_title = title.lower()
-    is_generic = "tiktok" in lower_title or "video" in lower_title or "music" in lower_title or not title.strip()
-    
-    if is_generic:
-        # Try og:description
-        import re
-        desc_match = re.search(r'<meta property="og:description" content="(.*?)"', html)
-        if desc_match:
-            desc = desc_match.group(1).strip()
-            # TikTok descriptions often have " | TikTok" at the end, or similar patterns
-            if " | " in desc:
-                desc = desc.split(" | ")[0]
-            # Strip "on TikTok" suffix if it exists
-            import re as _re
-            desc = _re.sub(r'(?i)\s*on TikTok.*?$', '', desc).strip()
-            if desc and len(desc) > 3:
-                return desc
-                
-    # If still generic or we have a title but it's just 'TikTok', try to keep it cleaner
-    if title:
-        clean_t = title.replace(" | TikTok", "").replace("TikTok - Make Your Day", "").strip()
-        return clean_t if clean_t and clean_t.lower() != "tiktok" else "TikTok Post"
-        
-    return "TikTok Post"
+        return True
+    lower = title.lower().strip()
+    return not lower or any(w in lower for w in _TIKTOK_GENERIC_WORDS)
+
+
+# ──────────────────────────────────────────────
+#  Main extraction entry point
+# ──────────────────────────────────────────────
 
 def extract_info(url, prefer_hq=False, cookie_str=None, show_video=False):
+    """
+    Main entry point called from Java/Chaquopy.
+    GUARANTEES: Always returns a dict, never None.
+    The dict will always have at minimum an 'error' key OR valid media keys.
+    """
+    try:
+        return _extract_info_internal(url, prefer_hq, cookie_str, show_video)
+    except Exception as e:
+        # Ultimate safety net - no matter what happens, return a dict
+        return {"error": f"Lỗi nghiêm trọng (Critical Error):\n{e}\n\n{traceback.format_exc()}"}
+
+
+def _extract_info_internal(url, prefer_hq=False, cookie_str=None, show_video=False):
+    """Internal extraction logic. May raise exceptions (caught by extract_info)."""
     if IMPORT_ERROR:
         return {"error": f"Lỗi khởi động Python (Import Error):\n{IMPORT_ERROR}"}
 
-    # Optimization: If TikTok Music link, skip yt-dlp and go straight to manual
-    if "tiktok.com/music" in url or "tiktok.com" in url and "/music/" in url:
-        return _extract_tiktok_manual(url)
+    if not url or not isinstance(url, str) or not url.strip():
+        return {"error": "URL không hợp lệ (empty or invalid)."}
 
-    # Normal yt-dlp logic
-    # Based on old working version (simple is better)
+    url = url.strip()
+
+    # TikTok music links → skip yt-dlp, go manual
+    if "tiktok.com" in url and "/music/" in url:
+        result = _extract_tiktok_manual(url)
+        return _safe_result(result)
+
+    # ── Build yt-dlp options ──
     if show_video:
-        format_selection = 'best[ext=mp4]/best'
+        fmt = 'best[ext=mp4]/best'
     else:
-        format_selection = 'bestaudio/best' if prefer_hq else 'worst[ext=m4a]/worst'
-    
+        fmt = 'bestaudio/best' if prefer_hq else 'worstaudio[ext=m4a]/worstaudio/worst'
+
     ydl_opts = {
-        'format': format_selection,
+        'format': fmt,
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
         'extract_flat': False,
-        'ignoreerrors': True,
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
-        },
+        'socket_timeout': 20,
+        'http_headers': {'User-Agent': _MOBILE_UA},
     }
 
-    # Cookie support ...
-    import tempfile
-    import os
+    # ── Cookie support ──
+    import tempfile, os
     cookie_temp_path = None
-    if cookie_str and len(cookie_str.strip()) > 20: 
+    if cookie_str and isinstance(cookie_str, str) and len(cookie_str.strip()) > 20:
         try:
             fd, cookie_temp_path = tempfile.mkstemp(suffix=".txt", prefix="cookies_")
             with os.fdopen(fd, 'w') as f:
                 f.write(cookie_str)
             ydl_opts['cookiefile'] = cookie_temp_path
-        except Exception as ce:
-            print(f"Error creating cookie file: {ce}")
+        except Exception:
+            cookie_temp_path = None  # Ensure it's None if creation failed
 
     try:
-        try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=False)
-                
-                stream_url = info.get("url")
-                if not stream_url:
-                    formats = info.get("formats", [])
-                    audio_formats = [f for f in formats if f.get('acodec') != 'none' and f.get('vcodec') == 'none']
-                    if audio_formats:
-                        stream_url = audio_formats[-1].get('url')
-                    elif formats:
-                         stream_url = formats[-1].get('url')
-
-                if not stream_url:
-                    raise Exception("No URL found by yt-dlp")
-
-                title = info.get("title", "Unknown Title")
-                if "tiktok.com" in url or "tiktok" in info.get("extractor", "").lower():
-                    # Even with yt-dlp, check for generic titles
-                    if "TikTok" in title or "Video" == title:
-                         # Attempt to find a better title in description
-                         desc = info.get("description", "")
-                         if desc and len(desc) > 5 and "TikTok" not in desc[:20]:
-                             title = desc.split("\n")[0][:100]
-
-                source_info = "Source: YouTube"
-                if "tiktok.com" in url or "tiktok" in info.get("extractor", "").lower():
-                    source_info = "Source: TikTok"
-
-                return {
-                    "title": title,
-                    "duration": info.get("duration", 0),
-                    "thumbnail": info.get("thumbnail", ""),
-                    "url": stream_url,
-                    "uploader": info.get("uploader", "Unknown"),
-                    "view_count": info.get("view_count", 0),
-                    "source_info": source_info
-                }
-        except Exception as e:
-            # Fallback for TikTok (Video) if yt-dlp fails
-            if "tiktok.com" in url:
-                return _extract_tiktok_manual(url)
-            
-            return {"error": f"Lỗi xử lý (Extraction Error):\n{str(e)}\n\n{traceback.format_exc()}"}
+        result = _run_ytdlp(url, ydl_opts)
+        return _safe_result(result)
+    except Exception as e:
+        # Fallback for TikTok if yt-dlp fails entirely
+        if "tiktok.com" in url:
+            fallback = _extract_tiktok_manual(url)
+            return _safe_result(fallback)
+        return {"error": f"Lỗi xử lý (Extraction Error):\n{e}\n\n{traceback.format_exc()}"}
     finally:
-        if cookie_temp_path and os.path.exists(cookie_temp_path):
+        if cookie_temp_path:
             try:
-                os.remove(cookie_temp_path)
-            except:
+                import os as _os
+                _os.remove(cookie_temp_path)
+            except OSError:
                 pass
+
+
+def _run_ytdlp(url, ydl_opts):
+    """Run yt-dlp extraction with proper None-safety."""
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+
+        # ── FIX: info can be None when extraction silently fails ──
+        if info is None:
+            return {
+                "error": (
+                    "yt-dlp returned no data. The URL may be invalid, "
+                    "geo-restricted, or the service is temporarily unavailable."
+                )
+            }
+
+        # Ensure info is a dict (some extractors return unexpected types)
+        if not isinstance(info, dict):
+            return {"error": f"yt-dlp returned unexpected type: {type(info).__name__}"}
+
+        # ── Resolve stream URL ──
+        stream_url = info.get("url") or ""
+        if not stream_url:
+            formats = info.get("formats")
+            if formats and isinstance(formats, list):
+                # Prefer audio-only formats
+                audio_fmts = [
+                    f for f in formats
+                    if isinstance(f, dict)
+                    and f.get('acodec') != 'none'
+                    and f.get('vcodec') in ('none', None)
+                ]
+                if audio_fmts:
+                    stream_url = audio_fmts[-1].get('url') or ""
+                elif formats:
+                    # Fallback: last format with a URL
+                    for f in reversed(formats):
+                        if isinstance(f, dict) and f.get('url'):
+                            stream_url = f.get('url')
+                            break
+
+        if not stream_url:
+            return {"error": "yt-dlp could not find a playable stream URL."}
+
+        # ── Title cleanup ──
+        title = info.get("title") or "Unknown Title"
+        extractor = (info.get("extractor") or "").lower()
+        is_tiktok = "tiktok.com" in url or "tiktok" in extractor
+
+        if is_tiktok and _is_generic_tiktok_title(title):
+            desc = info.get("description") or ""
+            if desc and len(desc) > 5 and "TikTok" not in desc[:20]:
+                title = desc.split("\n")[0][:100]
+
+        source_info = "Source: TikTok" if is_tiktok else "Source: YouTube"
+
+        return {
+            "title": title,
+            "duration": info.get("duration") or 0,
+            "thumbnail": info.get("thumbnail") or "",
+            "url": stream_url,
+            "uploader": info.get("uploader") or "Unknown",
+            "view_count": info.get("view_count") or 0,
+            "source_info": source_info,
+        }
