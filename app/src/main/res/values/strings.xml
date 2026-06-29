@@ -5,7 +5,9 @@
     <string name="title_settings">Settings</string>
     <string name="enter_media_url">Enter YouTube/TikTok/Spotify URL</string>
     <string name="analyze_and_play">Analyze &amp; Play</string>
-    <string name="home_guide_text">Welcome to SilentPipe!\n\nPaste a link above or convert from another app via Share.\n\nSupports: YouTube, TikTok, Spotify</string>
+    <string name="home_guide_text">Paste a link above or share from another app.\n\nSupports: YouTube, TikTok, Spotify, SoundCloud and more.</string>
+    <string name="home_subtitle">Stream anything, anywhere</string>
+    <string name="home_supported_title">How to use</string>
 
     <!-- Settings -->
     <string name="pref_appearance">Appearance</string>
@@ -205,4 +207,10 @@
     <string name="fx_fade_duration_format">Duration: %ds</string>
     <string name="fx_reset_all">Reset All Effects</string>
     <string name="fx_reset_done">All effects reset</string>
+
+    <!-- Loop -->
+    <string name="btn_loop">Loop</string>
+    <string name="loop_off">Loop: Off</string>
+    <string name="loop_one">Loop: Repeat One</string>
+    <string name="loop_all">Loop: Repeat All</string>
 </resources>

@@ -216,6 +216,9 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
             }
         });
 
+        // Loop button in player controls
+        setupLoopButton();
+
         if (visualizerView != null) {
             // Apply Visualizer Style from Prefs
             SharedPreferences vizPrefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
@@ -229,6 +232,71 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         }
 
         makeDraggable(findViewById(R.id.fab_stack));
+    }
+
+    // ── Loop ──
+    private int loopMode = androidx.media3.common.Player.REPEAT_MODE_OFF; // 0=off, 1=one, 2=all
+
+    private void setupLoopButton() {
+        android.widget.ImageButton btnLoop = playerView.findViewById(R.id.btn_loop);
+        if (btnLoop != null) {
+            // Restore saved loop state
+            SharedPreferences loopPrefs = getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE);
+            loopMode = loopPrefs.getInt("pref_loop_mode", androidx.media3.common.Player.REPEAT_MODE_OFF);
+            updateLoopButtonUI(btnLoop);
+
+            btnLoop.setOnClickListener(v -> {
+                // Cycle: OFF → ONE → ALL → OFF
+                if (loopMode == androidx.media3.common.Player.REPEAT_MODE_OFF) {
+                    loopMode = androidx.media3.common.Player.REPEAT_MODE_ONE;
+                } else if (loopMode == androidx.media3.common.Player.REPEAT_MODE_ONE) {
+                    loopMode = androidx.media3.common.Player.REPEAT_MODE_ALL;
+                } else {
+                    loopMode = androidx.media3.common.Player.REPEAT_MODE_OFF;
+                }
+
+                if (mediaController != null) {
+                    mediaController.setRepeatMode(loopMode);
+                }
+
+                updateLoopButtonUI(btnLoop);
+                getSharedPreferences("silentpipe_prefs", Context.MODE_PRIVATE)
+                    .edit().putInt("pref_loop_mode", loopMode).apply();
+
+                String msg;
+                if (loopMode == androidx.media3.common.Player.REPEAT_MODE_ONE) {
+                    msg = getString(R.string.loop_one);
+                } else if (loopMode == androidx.media3.common.Player.REPEAT_MODE_ALL) {
+                    msg = getString(R.string.loop_all);
+                } else {
+                    msg = getString(R.string.loop_off);
+                }
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        // EQ button in player
+        android.widget.ImageButton btnEq = playerView.findViewById(R.id.btn_eq_player);
+        if (btnEq != null) {
+            btnEq.setOnClickListener(v -> showEqualizer());
+        }
+    }
+
+    private void updateLoopButtonUI(android.widget.ImageButton btnLoop) {
+        if (btnLoop == null) return;
+        if (loopMode == androidx.media3.common.Player.REPEAT_MODE_ONE) {
+            btnLoop.setImageResource(R.drawable.ic_repeat_one);
+            btnLoop.setImageTintList(android.content.res.ColorStateList.valueOf(
+                com.google.android.material.color.MaterialColors.getColor(btnLoop, com.google.android.material.R.attr.colorPrimary)));
+        } else if (loopMode == androidx.media3.common.Player.REPEAT_MODE_ALL) {
+            btnLoop.setImageResource(R.drawable.ic_repeat);
+            btnLoop.setImageTintList(android.content.res.ColorStateList.valueOf(
+                com.google.android.material.color.MaterialColors.getColor(btnLoop, com.google.android.material.R.attr.colorPrimary)));
+        } else {
+            btnLoop.setImageResource(R.drawable.ic_repeat);
+            btnLoop.setImageTintList(android.content.res.ColorStateList.valueOf(0x88FFFFFF));
+        }
+    }
 
         TextView tvFooter = findViewById(R.id.tv_version_footer);
         if (tvFooter != null) {
@@ -826,6 +894,7 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
                                         .build();
                                 
                                 mediaController.setMediaItem(mediaItem);
+                                mediaController.setRepeatMode(loopMode); // Apply saved loop
                                 mediaController.prepare();
                                 mediaController.play();
                                 Toast.makeText(this, getString(R.string.toast_playing, finalTitle), Toast.LENGTH_SHORT).show();

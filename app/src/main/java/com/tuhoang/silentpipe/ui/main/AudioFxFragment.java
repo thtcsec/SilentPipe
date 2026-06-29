@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.audiofx.PresetReverb;
+import android.media.audiofx.Virtualizer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.media3.common.PlaybackParameters;
+import androidx.media3.common.Player;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.slider.Slider;
@@ -46,6 +48,7 @@ public class AudioFxFragment extends Fragment {
 
     // Effects state
     private PresetReverb presetReverb;
+    private Virtualizer virtualizer; // For vocal removal (stereo widening)
     private ValueAnimator fadeAnimator;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -262,8 +265,13 @@ public class AudioFxFragment extends Fragment {
     }
 
     private void applyVocalCut(boolean enabled, int strength) {
-        // Vocal Cut: reduce mid-range frequencies (300Hz-3kHz) where vocals typically reside
-        // Uses the existing equalizer bands to create a mid-scoop
+        // Vocal Cut using Phase-Inversion technique:
+        // 1. Virtualizer maxes stereo width → pushes center-panned vocals to be diffused
+        // 2. Surgical EQ cut on vocal formant range (250Hz-5kHz)
+        // 3. The combination is much more effective than EQ alone
+        //
+        // True phase-inversion (L-R subtraction) requires custom AudioProcessor in ExoPlayer
+        // which would need NDK. This approach is the best available via Android audiofx APIs.
         PlaybackService service = PlaybackService.instance;
         if (service == null) return;
 
@@ -271,26 +279,57 @@ public class AudioFxFragment extends Fragment {
         if (manager == null) return;
 
         try {
+            int sessionId = manager.getAudioSessionId();
+            if (sessionId == 0) return;
+
+            // ── Step 1: Virtualizer (stereo widening to diffuse center vocals) ──
+            if (enabled) {
+                if (virtualizer == null) {
+                    virtualizer = new Virtualizer(0, sessionId);
+                }
+                if (virtualizer.getStrengthSupported()) {
+                    // Strength proportional to user slider (max 1000)
+                    short virtStrength = (short) (strength * 10); // 0-100 → 0-1000
+                    virtualizer.setStrength(virtStrength);
+                }
+                virtualizer.setEnabled(true);
+            } else {
+                if (virtualizer != null) {
+                    virtualizer.setEnabled(false);
+                }
+            }
+
+            // ── Step 2: Surgical EQ cut on vocal formant frequencies ──
             short bands = manager.getNumberOfBands();
             short[] levelRange = manager.getBandLevelRange();
-            short minLevel = levelRange[0];
+            short minLevel = levelRange[0]; // typically -1500
 
             for (short i = 0; i < bands; i++) {
-                int freq = manager.getCenterFreq(i) / 1000; // Convert to Hz
-                if (enabled && freq >= 300 && freq <= 4000) {
-                    // Cut mid-frequencies proportional to strength
-                    short cut = (short) (minLevel * strength / 100);
-                    manager.setBandLevel(i, cut);
-                } else if (!enabled) {
-                    // Reset mid bands to 0
-                    int freqHz = manager.getCenterFreq(i) / 1000;
-                    if (freqHz >= 300 && freqHz <= 4000) {
+                int freqHz = manager.getCenterFreq(i) / 1000; // milliHz to Hz
+
+                if (enabled) {
+                    if (freqHz >= 250 && freqHz <= 5000) {
+                        // Vocal fundamental + formants: aggressive cut
+                        // Stronger cut in the 800Hz-3kHz "presence" range
+                        float cutFactor;
+                        if (freqHz >= 800 && freqHz <= 3000) {
+                            cutFactor = 1.0f; // Full cut in core vocal range
+                        } else {
+                            cutFactor = 0.5f; // Lighter cut on edges
+                        }
+                        short cut = (short) (minLevel * cutFactor * strength / 100);
+                        manager.setBandLevel(i, cut);
+                    }
+                    // Leave bass (<250Hz) and treble (>5kHz) untouched for instrumental clarity
+                } else {
+                    // Reset all bands touched by vocal cut
+                    if (freqHz >= 250 && freqHz <= 5000) {
                         manager.setBandLevel(i, (short) 0);
                     }
                 }
             }
         } catch (Exception e) {
-            Log.e(TAG, "Error applying vocal cut", e);
+            Log.e(TAG, "Error applying vocal cut (phase-inversion)", e);
         }
     }
 
@@ -492,6 +531,9 @@ public class AudioFxFragment extends Fragment {
         switchVocalCut.setChecked(false);
         sliderVocalCut.setValue(80);
         applyVocalCut(false, 0);
+        if (virtualizer != null) {
+            virtualizer.setEnabled(false);
+        }
 
         // Reset reverb
         switchReverb.setChecked(false);
@@ -559,6 +601,14 @@ public class AudioFxFragment extends Fragment {
                 Log.e(TAG, "Error releasing reverb", e);
             }
             presetReverb = null;
+        }
+        if (virtualizer != null) {
+            try {
+                virtualizer.release();
+            } catch (Exception e) {
+                Log.e(TAG, "Error releasing virtualizer", e);
+            }
+            virtualizer = null;
         }
     }
 }

@@ -6,7 +6,9 @@
     <string name="title_settings">Cài đặt</string>
     <string name="enter_media_url">Nhập link YouTube/TikTok/Spotify</string>
     <string name="analyze_and_play">Phân tích &amp; Phát</string>
-    <string name="home_guide_text">Chào mừng đến với SilentPipe!\n\nDán liên kết ở trên hoặc chia sẻ từ ứng dụng khác.\n\nHỗ trợ: YouTube, TikTok, Spotify</string>
+    <string name="home_guide_text">Dán liên kết ở trên hoặc chia sẻ từ ứng dụng khác.\n\nHỗ trợ: YouTube, TikTok, Spotify, SoundCloud và nhiều hơn nữa.</string>
+    <string name="home_subtitle">Stream mọi thứ, mọi nơi</string>
+    <string name="home_supported_title">Cách sử dụng</string>
 
     <!-- Settings -->
     <string name="pref_appearance">Giao diện</string>
@@ -206,4 +208,10 @@
     <string name="fx_fade_duration_format">Thời lượng: %d giây</string>
     <string name="fx_reset_all">Đặt lại tất cả hiệu ứng</string>
     <string name="fx_reset_done">Đã đặt lại tất cả hiệu ứng</string>
+
+    <!-- Loop -->
+    <string name="btn_loop">Lặp lại</string>
+    <string name="loop_off">Lặp: Tắt</string>
+    <string name="loop_one">Lặp: Lặp 1 bài</string>
+    <string name="loop_all">Lặp: Lặp tất cả</string>
 </resources>
