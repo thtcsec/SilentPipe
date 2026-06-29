@@ -20,6 +20,7 @@ import com.tuhoang.silentpipe.core.service.PlaybackService;
 public class EqualizerFragment extends BottomSheetDialogFragment {
 
     private PlaybackService playbackService;
+    private AudioEffectManager fallbackManager; // Track to release on destroy
     private LinearLayout bandsContainer;
     private com.google.android.material.switchmaterial.SwitchMaterial switchEnable;
     private SeekBar seekBassBoost;
@@ -70,7 +71,8 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
         if (placeholder != null) placeholder.setVisibility(View.GONE);
 
         if (manager == null) {
-            manager = new AudioEffectManager(requireContext(), 0);
+            fallbackManager = new AudioEffectManager(requireContext(), 0);
+            manager = fallbackManager;
         }
         
         final AudioEffectManager audioManager = manager;
@@ -151,5 +153,14 @@ public class EqualizerFragment extends BottomSheetDialogFragment {
         int hertz = milliHertz / 1000;
         if (hertz < 1000) return hertz + "Hz";
         return (hertz / 1000) + "kHz";
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (fallbackManager != null) {
+            fallbackManager.release();
+            fallbackManager = null;
+        }
     }
 }

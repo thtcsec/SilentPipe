@@ -177,4 +177,32 @@
     <string name="viz_color_ocean">Deep Ocean (Cyan - Blue)</string>
     <string name="viz_color_sunset">Sunset (Red - Yellow)</string>
     <string name="viz_color_forest">Forest (Green - Lime)</string>
+
+    <!-- Audio FX Tab -->
+    <string name="title_audio_fx">Audio FX</string>
+    <string name="audio_fx_title">Audio Effects</string>
+    <string name="audio_fx_no_playback">Play something first to apply effects</string>
+    <string name="audio_fx_ready">Effects ready - adjustments apply in real-time</string>
+    <string name="fx_nightcore">Nightcore / Speed</string>
+    <string name="fx_nightcore_desc">Adjust playback speed and pitch independently</string>
+    <string name="fx_preset_normal">Normal</string>
+    <string name="fx_preset_nightcore">Nightcore</string>
+    <string name="fx_preset_slowed">Slowed</string>
+    <string name="fx_preset_custom">Custom</string>
+    <string name="fx_vocal_cut">Vocal Cut (Instrumental)</string>
+    <string name="fx_vocal_cut_desc">Reduce vocals by cutting mid-range frequencies (300Hz-4kHz)</string>
+    <string name="fx_strength_label">Cut Strength:</string>
+    <string name="fx_reverb">Reverb</string>
+    <string name="fx_reverb_preset_none">None</string>
+    <string name="fx_bass_boost">Bass Boost</string>
+    <string name="fx_muffle">Muffle</string>
+    <string name="fx_muffle_desc">Cut high frequencies for muffled/underwater effect</string>
+    <string name="fx_fade">Fade In / Out</string>
+    <string name="fx_fade_desc">Gradually ramp volume up or down</string>
+    <string name="fx_fade_in">Fade In</string>
+    <string name="fx_fade_out">Fade Out</string>
+    <string name="fx_fade_duration_label">Duration: 3s</string>
+    <string name="fx_fade_duration_format">Duration: %ds</string>
+    <string name="fx_reset_all">Reset All Effects</string>
+    <string name="fx_reset_done">All effects reset</string>
 </resources>

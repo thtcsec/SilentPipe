@@ -54,13 +54,16 @@ public class AdvancedEqActivity extends AppCompatActivity {
         setupEqualizerUI();
     }
 
+    private AudioEffectManager fallbackManager; // Track fallback to release on destroy
+
     private void setupEqualizerUI() {
         PlaybackService service = PlaybackService.instance;
         AudioEffectManager manager = (service != null) ? service.getAudioEffectManager() : null;
 
         if (manager == null) {
              // Create a fallback manager to load cached presets UI
-             manager = new AudioEffectManager(this, 0);
+             fallbackManager = new AudioEffectManager(this, 0);
+             manager = fallbackManager;
         }
         
         final AudioEffectManager audioManager = manager;
@@ -171,5 +174,14 @@ public class AdvancedEqActivity extends AppCompatActivity {
         int hertz = milliHertz / 1000;
         if (hertz < 1000) return hertz + "Hz";
         return (hertz / 1000) + "kHz";
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (fallbackManager != null) {
+            fallbackManager.release();
+            fallbackManager = null;
+        }
     }
 }

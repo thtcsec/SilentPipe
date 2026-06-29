@@ -190,9 +190,11 @@ public class VisualizerView extends View {
     }
     
     public void link(int audioSessionId) {
+        if (!isAttachedToWindow()) return;
         try {
             if (mVisualizer != null) {
                 mVisualizer.release();
+                mVisualizer = null;
             }
             mVisualizer = new Visualizer(audioSessionId);
             mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);

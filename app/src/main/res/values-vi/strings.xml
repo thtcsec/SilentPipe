@@ -178,4 +178,32 @@
     <string name="viz_color_ocean">Đại dương (Xanh lục - Xanh thẳm)</string>
     <string name="viz_color_sunset">Hoàng hôn (Đỏ - Vàng)</string>
     <string name="viz_color_forest">Rừng rậm (Xanh lá - Vàng)</string>
+
+    <!-- Audio FX Tab -->
+    <string name="title_audio_fx">Hiệu ứng</string>
+    <string name="audio_fx_title">Hiệu ứng âm thanh</string>
+    <string name="audio_fx_no_playback">Phát nhạc trước để áp dụng hiệu ứng</string>
+    <string name="audio_fx_ready">Hiệu ứng sẵn sàng - điều chỉnh theo thời gian thực</string>
+    <string name="fx_nightcore">Nightcore / Tốc độ</string>
+    <string name="fx_nightcore_desc">Chỉnh tốc độ và cao độ riêng biệt</string>
+    <string name="fx_preset_normal">Bình thường</string>
+    <string name="fx_preset_nightcore">Nightcore</string>
+    <string name="fx_preset_slowed">Slowed</string>
+    <string name="fx_preset_custom">Tùy chỉnh</string>
+    <string name="fx_vocal_cut">Cắt Vocal (Instrumental)</string>
+    <string name="fx_vocal_cut_desc">Giảm giọng hát bằng cách cắt tần số trung (300Hz-4kHz)</string>
+    <string name="fx_strength_label">Độ mạnh:</string>
+    <string name="fx_reverb">Reverb (Vang)</string>
+    <string name="fx_reverb_preset_none">Không</string>
+    <string name="fx_bass_boost">Tăng Bass</string>
+    <string name="fx_muffle">Muffle (Âm đục)</string>
+    <string name="fx_muffle_desc">Cắt tần cao tạo hiệu ứng nghe chìm/underwater</string>
+    <string name="fx_fade">Fade In / Out</string>
+    <string name="fx_fade_desc">Tăng/giảm âm lượng từ từ</string>
+    <string name="fx_fade_in">Fade In</string>
+    <string name="fx_fade_out">Fade Out</string>
+    <string name="fx_fade_duration_label">Thời lượng: 3 giây</string>
+    <string name="fx_fade_duration_format">Thời lượng: %d giây</string>
+    <string name="fx_reset_all">Đặt lại tất cả hiệu ứng</string>
+    <string name="fx_reset_done">Đã đặt lại tất cả hiệu ứng</string>
 </resources>

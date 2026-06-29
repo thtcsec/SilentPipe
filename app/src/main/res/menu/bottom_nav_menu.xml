@@ -9,7 +9,11 @@
         android:icon="@android:drawable/star_off"
         android:title="@string/title_favorites" />
     <item
+        android:id="@+id/nav_audio_fx"
+        android:icon="@drawable/ic_audio_fx"
+        android:title="@string/title_audio_fx" />
+    <item
         android:id="@+id/nav_find_sound"
         android:icon="@android:drawable/ic_menu_search"
-        android:title="Find Sound" />
+        android:title="@string/nav_find_sound" />
 </menu>

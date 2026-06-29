@@ -92,6 +92,10 @@ public class PlaybackService extends MediaSessionService {
         return audioEffectManager;
     }
 
+    public ExoPlayer getPlayer() {
+        return player;
+    }
+
     @Override
     public void onDestroy() {
         instance = null;

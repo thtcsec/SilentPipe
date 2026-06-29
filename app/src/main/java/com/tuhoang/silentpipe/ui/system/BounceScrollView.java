@@ -41,7 +41,12 @@ public class BounceScrollView extends NestedScrollView {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
 
-        if (contentView == null) return;
+        if (contentView == null) {
+            if (getChildCount() > 0) {
+                contentView = getChildAt(0);
+            }
+            if (contentView == null) return;
+        }
 
         originalRect.set(contentView.getLeft(), contentView.getTop(), contentView.getRight(), contentView.getBottom());
     }

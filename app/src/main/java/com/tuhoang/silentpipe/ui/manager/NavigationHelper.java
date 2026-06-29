@@ -51,8 +51,9 @@ public class NavigationHelper {
                     new AppBarConfiguration.Builder(
                         R.id.nav_home, 
                         R.id.nav_favorites, 
+                        R.id.nav_audio_fx,
                         R.id.nav_find_sound 
-                    ).build(); // Removed Settings from top-level as it is now in Drawer (or separate)
+                    ).build();
             
             NavigationUI.setupActionBarWithNavController(activity, navController, appBarConfiguration);
 
