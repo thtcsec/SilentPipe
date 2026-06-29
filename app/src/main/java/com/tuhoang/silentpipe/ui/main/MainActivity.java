@@ -232,6 +232,16 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
         }
 
         makeDraggable(findViewById(R.id.fab_stack));
+
+        TextView tvFooter = findViewById(R.id.tv_version_footer);
+        if (tvFooter != null) {
+            try {
+                String version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+                tvFooter.setText(getString(R.string.footer_version, version));
+            } catch (Exception e) {
+                tvFooter.setText(getString(R.string.footer_version, "1.0"));
+            }
+        }
     }
 
     // ── Loop ──
@@ -284,28 +294,17 @@ public class MainActivity extends AppCompatActivity implements ClipboardHelper.C
 
     private void updateLoopButtonUI(android.widget.ImageButton btnLoop) {
         if (btnLoop == null) return;
+        int accentColor = com.google.android.material.color.MaterialColors.getColor(
+                btnLoop, androidx.appcompat.R.attr.colorPrimary, 0xFFBB86FC);
         if (loopMode == androidx.media3.common.Player.REPEAT_MODE_ONE) {
             btnLoop.setImageResource(R.drawable.ic_repeat_one);
-            btnLoop.setImageTintList(android.content.res.ColorStateList.valueOf(
-                com.google.android.material.color.MaterialColors.getColor(btnLoop, com.google.android.material.R.attr.colorPrimary)));
+            btnLoop.setImageTintList(android.content.res.ColorStateList.valueOf(accentColor));
         } else if (loopMode == androidx.media3.common.Player.REPEAT_MODE_ALL) {
             btnLoop.setImageResource(R.drawable.ic_repeat);
-            btnLoop.setImageTintList(android.content.res.ColorStateList.valueOf(
-                com.google.android.material.color.MaterialColors.getColor(btnLoop, com.google.android.material.R.attr.colorPrimary)));
+            btnLoop.setImageTintList(android.content.res.ColorStateList.valueOf(accentColor));
         } else {
             btnLoop.setImageResource(R.drawable.ic_repeat);
             btnLoop.setImageTintList(android.content.res.ColorStateList.valueOf(0x88FFFFFF));
-        }
-    }
-
-        TextView tvFooter = findViewById(R.id.tv_version_footer);
-        if (tvFooter != null) {
-            try {
-                String version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-                tvFooter.setText(getString(R.string.footer_version, version));
-            } catch (Exception e) {
-                tvFooter.setText(getString(R.string.footer_version, "1.0"));
-            }
         }
     }
 
